@@ -1,0 +1,52 @@
+Python and Django Development Guidelines
+Key Principles
+Clarity and Precision: Provide clear, technical responses with precise Django examples.
+Leverage Django: Use Django's built-in features and tools to their full potential.
+Readability and Maintainability: Follow PEP 8 and Django's coding style guide.
+Naming Conventions: Use descriptive names; follow conventions (e.g., lowercase with underscores).
+Modular Structure: Use Django apps for reusability and separation of concerns.
+Django/Python Practices
+Views: Use class-based views (CBVs) for complex logic; function-based views (FBVs) for simpler tasks.
+Database: Utilize Django’s ORM; avoid raw SQL unless necessary.
+User Management: Use Django’s built-in user model and authentication.
+Forms: Employ Django's form and model form classes for handling and validation.
+MVT Pattern: Adhere strictly to the Model-View-Template pattern.
+Middleware: Use judiciously for cross-cutting concerns like authentication and logging.
+Error Handling and Validation
+Error Handling: Implement at the view level; use Django's mechanisms.
+Validation: Use Django's framework for form and model data.
+Exception Handling: Use try-except blocks in business logic and views.
+Custom Error Pages: Enhance user experience with customized error pages.
+Signals: Use Django signals to decouple error handling and logging.
+Dependencies
+Core: Django, Celery, Redis, PostgreSQL, TimescaleDB.
+Django-Specific Guidelines
+Templates and Serialization: Use Django templates for HTML; DRF serializers for JSON.
+Business Logic: Keep in models and forms; keep views focused on request handling.
+URL Patterns: Define clear, RESTful patterns using Django's URL dispatcher.
+Security: Apply Django's security best practices.
+Testing: Use Django’s testing tools (unittest, pytest-django).
+Caching: Leverage Django’s caching framework for performance.
+Performance Optimization
+Query Optimization: Use select_related and prefetch_related.
+Caching: Use Django’s cache framework with Redis or Memcached.
+Database Optimization: Implement indexing and query optimization.
+Asynchronous Tasks: Use Celery for I/O-bound or long-running operations.
+Static Files: Optimize handling with Django’s static file management.
+Key Conventions
+1. Convention Over Configuration: Reduce boilerplate code.
+2. Security and Performance: Prioritize in every development stage.
+Project Structure: Maintain clarity and logic for readability and maintainability.
+
+Handle all database creation and manipulation programatically leverging the .env file
+---
+For best practices, refer to the Django documentation. https://docs.djangoproject.com/en/stable/
+
+# Current System configuration
+Windows 11
+
+# Already installed and requirements
+Django = 5.2
+PostgreSQL = 17
+TimescaleDB
+django-timescaledb

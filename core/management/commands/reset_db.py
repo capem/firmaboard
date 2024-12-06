@@ -8,6 +8,10 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import time
 from typing import Optional
 import sys
+from dotenv import load_dotenv
+
+# Load environment variables at the start
+load_dotenv()
 
 class Command(BaseCommand):
     help = 'Reset database, run migrations, and create superuser'
@@ -32,7 +36,6 @@ class Command(BaseCommand):
 
     def connect_with_retry(self, dbname: str, retry_attempts: int) -> Optional[tuple[psycopg2.extensions.connection, psycopg2.extensions.cursor]]:
         """Attempt to connect to PostgreSQL with retries."""
-        db_settings = settings.DATABASES['default']
         attempt = 0
         last_error = None
 
@@ -40,10 +43,10 @@ class Command(BaseCommand):
             try:
                 conn = psycopg2.connect(
                     dbname=dbname,
-                    user=db_settings['USER'],
-                    password=db_settings['PASSWORD'],
-                    host=db_settings['HOST'],
-                    port=db_settings['PORT'],
+                    user=os.getenv('POSTGRES_USER'),
+                    password=os.getenv('POSTGRES_PASSWORD'),
+                    host=os.getenv('POSTGRES_HOST'),
+                    port=os.getenv('POSTGRES_PORT'),
                     connect_timeout=10
                 )
                 conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -78,22 +81,26 @@ class Command(BaseCommand):
         confirm = input('\nAre you sure you want to continue? [y/N]: ').lower()
         return confirm == 'y'
 
-    def clean_migrations(self, migrations_dir: str):
-        """Clean migration files while preserving __init__.py"""
-        if not os.path.exists(migrations_dir):
-            return
+    def clean_migrations(self):
+        """Clean migration files from all apps while preserving __init__.py"""
+        apps = ['farms', 'timeseries']  # List of apps to clean migrations
+        
+        for app in apps:
+            migrations_dir = os.path.join(app, 'migrations')
+            if not os.path.exists(migrations_dir):
+                continue
 
-        self.stdout.write('Cleaning migration files...')
-        for filename in os.listdir(migrations_dir):
-            if filename != '__init__.py' and filename.endswith('.py'):
-                file_path = os.path.join(migrations_dir, filename)
-                try:
-                    os.remove(file_path)
-                    self.stdout.write(f'Removed migration file: {filename}')
-                except Exception as e:
-                    self.stdout.write(self.style.WARNING(
-                        f'Could not remove migration file {filename}: {e}'
-                    ))
+            self.stdout.write(f'Cleaning migration files for {app}...')
+            for filename in os.listdir(migrations_dir):
+                if filename != '__init__.py' and filename.endswith('.py'):
+                    file_path = os.path.join(migrations_dir, filename)
+                    try:
+                        os.remove(file_path)
+                        self.stdout.write(f'Removed migration file: {app}/{filename}')
+                    except Exception as e:
+                        self.stdout.write(self.style.WARNING(
+                            f'Could not remove migration file {app}/{filename}: {e}'
+                        ))
 
     def handle(self, *args, **options):
         # Safety check for production environment
@@ -135,10 +142,24 @@ class Command(BaseCommand):
             cursor.execute(f'DROP DATABASE IF EXISTS {db_name}')
             self.stdout.write(self.style.SUCCESS(f'Database {db_name} dropped successfully'))
 
-            # Create new database
+            # Create new database with TimescaleDB extension
             self.stdout.write(f'Creating new database {db_name}...')
             cursor.execute(f'CREATE DATABASE {db_name}')
-            self.stdout.write(self.style.SUCCESS(f'Database {db_name} created successfully'))
+            
+            # Connect to the new database to create TimescaleDB extension
+            cursor.close()
+            conn.close()
+            
+            # Connect to the new database
+            result = self.connect_with_retry(db_name, retry_attempts)
+            if result is None:
+                raise CommandError('Could not connect to new database')
+            conn, cursor = result
+            
+            # Create TimescaleDB extension
+            self.stdout.write('Creating TimescaleDB extension...')
+            cursor.execute('CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE')
+            self.stdout.write(self.style.SUCCESS('TimescaleDB extension created successfully'))
 
         except psycopg2.Error as e:
             raise CommandError(f'Database operation failed: {e}')
@@ -149,31 +170,34 @@ class Command(BaseCommand):
 
         # Clean migrations if not keeping them
         if not options['keep_migrations']:
-            migrations_dir = os.path.join('farms', 'migrations')
-            self.clean_migrations(migrations_dir)
+            self.clean_migrations()
 
         try:
             # Make migrations
             self.stdout.write('Making migrations...')
-            call_command('makemigrations')
+            call_command('makemigrations', 'farms')
+            call_command('makemigrations', 'timeseries')
             
             # Apply migrations
             self.stdout.write('Applying migrations...')
             call_command('migrate')
             
-            # Create superuser
+            # Create superuser using environment variables
             User = get_user_model()
-            if not User.objects.filter(username='admin').exists():
+            if not User.objects.filter(username=os.getenv('DJANGO_SUPERUSER_USERNAME')).exists():
                 self.stdout.write('Creating superuser...')
-                password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin')
                 User.objects.create_superuser(
-                    username='admin',
-                    email='saadatmani@yahoo.fr',
-                    password=password
+                    username=os.getenv('DJANGO_SUPERUSER_USERNAME'),
+                    email=os.getenv('DJANGO_SUPERUSER_EMAIL'),
+                    password=os.getenv('DJANGO_SUPERUSER_PASSWORD')
                 )
                 self.stdout.write(self.style.SUCCESS('Superuser created successfully'))
             else:
                 self.stdout.write('Superuser already exists')
+
+            # Create test data
+            self.stdout.write('Creating test data...')
+            call_command('create_test_data')
             
             self.stdout.write(self.style.SUCCESS('\nDatabase reset completed successfully!'))
 
