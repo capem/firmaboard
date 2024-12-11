@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from datetime import timedelta, date
-from random import uniform, choice, randint
+from random import uniform, randint
 from farms.models import (
     Company, 
     WindFarm, 
@@ -67,7 +67,7 @@ class Command(BaseCommand):
                 'tower_type': 'STEEL',
                 'nacelle_weight': 80.5,
                 'power_curve': {'wind_speeds': [3,4,5,6,7,8,9,10,11,12], 
-                              'power_output': [0,100,250,500,850,1300,1650,1850,1950,2000]},
+                                'power_output': [0,100,250,500,850,1300,1650,1850,1950,2000]},
                 'onshore_suitable': True,
                 'offshore_suitable': False,
             },
@@ -92,7 +92,7 @@ class Command(BaseCommand):
                 'tower_type': 'HYBRID',
                 'nacelle_weight': 95.0,
                 'power_curve': {'wind_speeds': [3,4,5,6,7,8,9,10,11,12,13], 
-                              'power_output': [0,150,350,650,1050,1550,2000,2400,2700,2900,3000]},
+                                'power_output': [0,150,350,650,1050,1550,2000,2400,2700,2900,3000]},
                 'onshore_suitable': True,
                 'offshore_suitable': True,
             },
@@ -285,7 +285,7 @@ class Command(BaseCommand):
         return created_wind_farms, created_solar_farms
 
     def create_timeseries_data(self, wind_farms, solar_farms):
-        # Create data for the last 24 hours
+        # Create data for the last 24 hours with 10-minute intervals
         end_time = timezone.now()
         start_time = end_time - timedelta(hours=24)
         current_time = start_time
@@ -294,23 +294,34 @@ class Command(BaseCommand):
             for wind_farm in wind_farms:
                 WindFarmTimeseries.objects.create(
                     time=current_time,
-                    station=wind_farm,
-                    wind_speed=uniform(2.0, 15.0),
-                    wind_direction=uniform(0, 360),
-                    power_output=uniform(100, 1000),
-                    temperature=uniform(15, 25)
+                    farm=wind_farm,
+                    node_id=randint(1, wind_farm.number_of_turbines),
+                    active_power_min=round(uniform(100, 500), 2),
+                    active_power_max=round(uniform(1500, 2500), 2),
+                    active_power_mean=round(uniform(800, 2000), 2),
+                    energy_accumulated=round(uniform(5000, 20000), 2),
+                    energy_accumulated_export=round(uniform(1000, 5000), 2),
+                    energy_accumulated_import=round(uniform(500, 2000), 2),
+                    wind_speed_mean=round(uniform(5.0, 12.0), 2),
+                    wind_speed_stddev=round(uniform(0.5, 3.0), 2),
+                    wind_direction_mean=round(uniform(0, 360), 2),
+                    wind_direction_stddev=round(uniform(5.0, 20.0), 2),
+                    power_reduction_time=round(uniform(0, 600), 2),
+                    measurement_wind_speed_mean=round(uniform(5.0, 12.0), 2),
+                    measurement_wind_direction_mean=round(uniform(0, 360), 2)
                 )
 
             for solar_farm in solar_farms:
                 SolarFarmTimeseries.objects.create(
                     time=current_time,
-                    station=solar_farm,
-                    solar_irradiance=uniform(200, 1000),
-                    power_output=uniform(50, 500),
-                    module_temperature=uniform(20, 40)
+                    farm=solar_farm,
+                    node_id=randint(1, solar_farm.number_of_panels),
+                    solar_irradiance=round(uniform(200, 1000), 2),
+                    power_output=round(uniform(50, 500), 2),
+                    module_temperature=round(uniform(20, 40), 2)
                 )
 
-            current_time += timedelta(minutes=15)
+            current_time += timedelta(minutes=10)
 
         self.stdout.write(
             self.style.SUCCESS(

@@ -83,7 +83,7 @@ class Command(BaseCommand):
 
     def clean_migrations(self):
         """Clean migration files from all apps while preserving __init__.py"""
-        apps = ['farms', 'timeseries']  # List of apps to clean migrations
+        apps = ['farms', 'timeseries', 'core']  # List of apps to clean migrations
         
         for app in apps:
             migrations_dir = os.path.join(app, 'migrations')
@@ -177,6 +177,7 @@ class Command(BaseCommand):
             self.stdout.write('Making migrations...')
             call_command('makemigrations', 'farms')
             call_command('makemigrations', 'timeseries')
+            call_command('makemigrations', 'core')
             
             # Apply migrations
             self.stdout.write('Applying migrations...')
