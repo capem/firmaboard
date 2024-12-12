@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import WindFarmTimeseries, SolarFarmTimeseries
+from django.contrib.contenttypes.models import ContentType
+from .models import WindFarmTimeseries, SolarFarmTimeseries, Alarm
 
 class BaseTimeSeriesAdmin(admin.ModelAdmin):
     """
@@ -39,7 +40,6 @@ class WindFarmTimeseriesAdmin(BaseTimeSeriesAdmin):
         'measurement_wind_speed_mean',
         'measurement_wind_direction_mean',
     )
-    # 'node_id' is already included in the base class's list_display and list_filter
 
 @admin.register(SolarFarmTimeseries)
 class SolarFarmTimeseriesAdmin(BaseTimeSeriesAdmin):
@@ -52,4 +52,31 @@ class SolarFarmTimeseriesAdmin(BaseTimeSeriesAdmin):
         'power_output',
         'module_temperature',
     )
-    # 'node_id' is already included in the base class's list_display and list_filter
+
+@admin.register(Alarm)
+class AlarmAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for Alarm model.
+    """
+    list_display = (
+        'alarm_id',
+        'farm',
+        'alarm_code',
+        'node_id',
+        'time_on',
+        'time_off',
+        'created_at',
+        'updated_at',
+    )
+    list_filter = ('content_type', 'alarm_code', 'node_id', 'time_on', 'time_off')
+    search_fields = ('alarm_code', 'node_id', 'farm__name')
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-time_on',)
+
+    def farm(self, obj):
+        return obj.farm.name
+    farm.short_description = 'Farm Name'
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('content_type')

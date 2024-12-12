@@ -83,7 +83,7 @@ class Command(BaseCommand):
 
     def clean_migrations(self):
         """Clean migration files from all apps while preserving __init__.py"""
-        apps = ['farms', 'timeseries', 'core']  # List of apps to clean migrations
+        apps = [app.split('.')[-1] for app in settings.INSTALLED_APPS if not app.startswith('django.')]  # List of apps to clean migrations
         
         for app in apps:
             migrations_dir = os.path.join(app, 'migrations')
@@ -175,9 +175,9 @@ class Command(BaseCommand):
         try:
             # Make migrations
             self.stdout.write('Making migrations...')
-            call_command('makemigrations', 'farms')
-            call_command('makemigrations', 'timeseries')
-            call_command('makemigrations', 'core')
+            for app in settings.INSTALLED_APPS:
+                if '.' not in app:  # Skip django.contrib apps
+                    call_command('makemigrations', app)
             
             # Apply migrations
             self.stdout.write('Applying migrations...')

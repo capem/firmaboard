@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from timescale.db.models.models import TimescaleModel
 from timescale.db.models.fields import TimescaleDateTimeField
 from timescale.db.models.managers import TimescaleManager
@@ -22,7 +24,7 @@ class BaseTimeSeriesData(models.Model):
         ]
         constraints = [
             models.UniqueConstraint(
-                fields=["time", "node_id", "farm_id"], 
+                fields=["time", "node_id", "farm_id"],
                 name="%(app_label)s_%(class)s_unique_time_station",
             )
         ]
@@ -159,3 +161,47 @@ class SolarFarmTimeseries(BaseTimeSeriesData):
     class Meta(BaseTimeSeriesData.Meta):
         verbose_name = "Solar Farm Time Series Data"
         verbose_name_plural = "Solar Farm Time Series Data"
+
+
+class Alarm(models.Model):
+    # Generic relation to handle multiple farm types
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, limit_choices_to=models.Q(
+            model__in=['windfarm', 'solarfarm']
+        )
+    )
+    farm_id = models.PositiveIntegerField()
+    farm = GenericForeignKey('content_type', 'farm_id')
+
+    alarm_id = models.IntegerField()
+    alarm_code = models.CharField(
+        max_length=50, help_text="Code representing the type of alarm"
+    )
+    node_id = models.IntegerField(help_text="Node identifier associated with the alarm")
+    time_on = models.DateTimeField(help_text="Timestamp when the alarm was activated")
+    time_off = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when the alarm was deactivated",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = models.Manager()
+    timescale = TimescaleManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["time_on", "node_id"]),
+            models.Index(fields=["content_type", "farm_id"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["alarm_id", "content_type", "farm_id"],
+                name="unique_alarm_per_farm",
+            )
+        ]
+        verbose_name = "Alarm"
+        verbose_name_plural = "Alarms"
+        ordering = ["-time_on"]
