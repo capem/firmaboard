@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { 
+import {
   ServerStackIcon,
   ChartBarIcon,
   CogIcon,
@@ -119,7 +119,7 @@ const features: Feature[] = [
 
 const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, index }) => {
   const Icon = feature.icon;
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -137,7 +137,7 @@ const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, i
           "bg-gradient-to-br from-primary/5 via-transparent to-transparent",
           "transition-opacity duration-300"
         )} />
-        
+
         <CardHeader className="pb-4 relative">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
@@ -169,7 +169,7 @@ const FeatureCard: React.FC<{ feature: Feature; index: number }> = ({ feature, i
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="relative">
           <p className={cn(
             "text-muted-foreground leading-relaxed",
@@ -192,14 +192,10 @@ const Features: React.FC = () => {
       "w-full py-24 relative overflow-hidden",
       "bg-muted/30"
     )}>
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat" />
-      </div>
-
+      <div className="absolute inset-0 opacity-15 bg-[url('/grid-pattern.svg')] bg-repeat" />
       <div className="container relative">
         <div className="flex flex-col gap-16">
-          <motion.div 
+          <motion.div
             className="text-center space-y-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -233,7 +229,7 @@ const Features: React.FC = () => {
             </div>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -242,9 +238,9 @@ const Features: React.FC = () => {
             {features
               .filter(feature => feature.category === activeCategory)
               .map((feature, index) => (
-                <FeatureCard 
-                  key={feature.title} 
-                  feature={feature} 
+                <FeatureCard
+                  key={feature.title}
+                  feature={feature}
                   index={index}
                 />
               ))}

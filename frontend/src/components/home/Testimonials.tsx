@@ -63,7 +63,7 @@ const TestimonialCard: React.FC<{ testimonial: Testimonial; index: number }> = (
           "bg-gradient-to-br from-primary/5 via-transparent to-transparent",
           "transition-opacity duration-300"
         )} />
-        
+
         <CardHeader className="relative space-y-4">
           <div className="flex items-center justify-between">
             <QuoteIcon className={cn(
@@ -73,8 +73,8 @@ const TestimonialCard: React.FC<{ testimonial: Testimonial; index: number }> = (
               "group-hover:opacity-100"
             )} />
             {testimonial.logoUrl ? (
-              <img 
-                src={testimonial.logoUrl} 
+              <img
+                src={testimonial.logoUrl}
                 alt={testimonial.company}
                 className={cn(
                   "h-8 opacity-70",
@@ -148,14 +148,10 @@ const Testimonials: React.FC = () => {
       "w-full py-24 relative overflow-hidden",
       "bg-muted/30"
     )}>
-      {/* Background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat" />
-      </div>
-
+      <div className="absolute inset-0 opacity-15 bg-[url('/grid-pattern.svg')] bg-repeat" />
       <div className="container relative">
         <div className="flex flex-col gap-16">
-          <motion.div 
+          <motion.div
             className="text-center space-y-4"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -168,18 +164,18 @@ const Testimonials: React.FC = () => {
               Powering operations for leading utilities and independent power producers worldwide
             </p>
           </motion.div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <TestimonialCard 
-                key={testimonial.name} 
-                testimonial={testimonial} 
+              <TestimonialCard
+                key={testimonial.name}
+                testimonial={testimonial}
                 index={index}
               />
             ))}
           </div>
 
-          <motion.div 
+          <motion.div
             className="flex justify-center"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

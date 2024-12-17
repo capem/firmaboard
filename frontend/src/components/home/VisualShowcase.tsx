@@ -210,10 +210,6 @@ const VisualShowcase: React.FC = () => {
       "bg-muted/95"
     )}>
       <div className="absolute inset-0" aria-hidden="true">
-        <div className={cn(
-          "absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat opacity-5",
-          "mix-blend-overlay"
-        )} />
         <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-transparent to-background/40" />
       </div>
 

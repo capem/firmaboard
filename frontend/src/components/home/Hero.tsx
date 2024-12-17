@@ -19,16 +19,13 @@ const Stat: React.FC<StatProps> = ({ value, label }) => (
 const Hero: React.FC = () => {
   return (
     <section className="relative w-full bg-primary text-primary-foreground overflow-hidden">
-      {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] bg-repeat animate-slide" />
-      </div>
-
       <div className="container relative py-24">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-8 text-center max-w-4xl mx-auto"
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], staggerChildren: 0.1 }}
+          viewport={{ once: true }}
+          className="flex flex-col items-center gap-8 text-center max-w-4xl mx-auto relative"
         >
           {/* Split headline with enhanced typography */}
           <div className="space-y-4">
@@ -42,16 +39,16 @@ const Hero: React.FC = () => {
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-muted leading-relaxed max-w-3xl mx-auto">
-              Empowering utility-scale operators with advanced analytics through 
-              seamless SCADA integration. Optimize performance, predict maintenance, 
+              Empowering utility-scale operators with advanced analytics through
+              seamless SCADA integration. Optimize performance, predict maintenance,
               and drive sustainability—all in real-time.
             </p>
           </div>
 
           {/* Enhanced CTA section */}
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="secondary"
               className={cn(
                 "font-semibold relative overflow-hidden",
@@ -63,8 +60,8 @@ const Hero: React.FC = () => {
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </span>
             </Button>
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="outline"
               className={cn(
                 "font-semibold bg-transparent",

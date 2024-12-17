@@ -1,0 +1,54 @@
+Custom styles for react-grid-layout
+
+/* Base styles for react-grid-layout */
+.react-grid-layout {
+  @apply relative transition-[height] duration-200 ease-out w-full;
+}
+
+.react-grid-item {
+  @apply transition-all duration-200 ease-out;
+}
+
+.react-grid-item.cssTransforms {
+  @apply transition-transform;
+}
+
+.react-grid-item.resizing {
+  @apply z-[1];
+  will-change: width, height;
+}
+
+.react-grid-item.react-draggable-dragging {
+  @apply transition-none z-[3];
+  will-change: transform;
+}
+
+.react-grid-item.react-grid-placeholder {
+  @apply bg-black/10 dark:bg-white/10 border-2 border-dashed border-border opacity-20 
+         transition-all duration-100 z-[2] rounded-xl select-none;
+}
+
+.react-grid-item > .react-resizable-handle {
+  @apply absolute w-5 h-5 bottom-0 right-0 cursor-se-resize opacity-0 
+         transition-opacity duration-200 ease-out;
+}
+
+.react-grid-item:hover > .react-resizable-handle {
+  @apply opacity-100;
+}
+
+.react-grid-item > .react-resizable-handle::after {
+  @apply content-[''] absolute right-[3px] bottom-[3px] w-2 h-2 
+         border-r-2 border-b-2 border-black/40 dark:border-white/40;
+}
+
+/* Responsive adjustments */
+@media (max-width: theme('screens.sm')) {
+  .react-grid-item > .react-resizable-handle {
+    @apply w-6 h-6;
+  }
+  
+  .react-grid-item > .react-resizable-handle::after {
+    @apply w-3 h-3;
+  }
+} 

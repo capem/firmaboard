@@ -31,7 +31,7 @@ const pricingPlans: PricingPlan[] = [
   {
     name: 'Professional',
     description: 'For growing renewable portfolios',
-    price: 'Starting at $1,499/month',
+    price: 'Starting at $_,___/month',
     capacity: 'Up to 500MW',
     features: [
       { name: 'Real-time performance monitoring', highlight: true },
@@ -47,7 +47,7 @@ const pricingPlans: PricingPlan[] = [
   {
     name: 'Enterprise',
     description: 'For utility-scale operations',
-    price: 'Starting at $2,499/month',
+    price: 'Starting at $_,___/month',
     capacity: 'Up to 2GW',
     features: [
       { name: 'Advanced analytics engine', tooltip: 'Including predictive maintenance and performance optimization', highlight: true },
