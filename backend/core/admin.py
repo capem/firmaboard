@@ -7,12 +7,12 @@ class CustomUserAdmin(UserAdmin):
     # Define additional fields to be displayed in the admin interface
     fieldsets = UserAdmin.fieldsets + (
         (None, {
-            'fields': ('phone_number', 'company', 'address', 'date_of_birth', 'role')
+            'fields': ('phone_number', 'company', 'address', 'role')
         }),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
-            'fields': ('phone_number', 'company', 'address', 'date_of_birth', 'role')
+            'fields': ('phone_number', 'company', 'address', 'role')
         }),
     )
     list_display = UserAdmin.list_display + ('phone_number', 'company', 'role', 'is_active', 'is_staff')

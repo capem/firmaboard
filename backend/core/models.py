@@ -28,11 +28,6 @@ class CustomUser(AbstractUser):
         null=True,
         help_text="User's physical address"
     )
-    date_of_birth = models.DateField(
-        blank=True,
-        null=True,
-        help_text="User's date of birth"
-    )
     ROLE_CHOICES = [
         ('admin', 'Administrator'),
         ('owner', 'Owner'),
