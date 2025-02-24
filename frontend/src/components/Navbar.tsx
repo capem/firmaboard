@@ -356,14 +356,17 @@ const NavLinks: React.FC<{ isMobile?: boolean }> = React.memo(({ isMobile }) => 
                     "gap-2 group/login border-primary/20 hover:border-primary/40 transition-colors",
                     isMobile && "w-full justify-start"
                   )}
+                  asChild
                 >
-                  <User2 className="h-4 w-4 transition-transform group-hover/login:scale-110" />
-                  <span className={cn(
-                    "relative after:absolute after:bottom-0 after:left-0 after:h-px after:bg-primary after:w-0 after:transition-[width]",
-                    "group-hover/login:after:w-full"
-                  )}>
-                    Login
-                  </span>
+                  <Link to="/login">
+                    <User2 className="h-4 w-4 transition-transform group-hover/login:scale-110" />
+                    <span className={cn(
+                      "relative after:absolute after:bottom-0 after:left-0 after:h-px after:bg-primary after:w-0 after:transition-[width]",
+                      "group-hover/login:after:w-full"
+                    )}>
+                      Login
+                    </span>
+                  </Link>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>

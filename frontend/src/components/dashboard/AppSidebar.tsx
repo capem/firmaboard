@@ -48,242 +48,242 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/contexts/AuthContext"
 
-const data = {
-  user: {
-    name: "example",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+const navMainData = [
+  {
+    title: "Command Center",
+    url: "/dashboard",
+    icon: LayoutDashboard,
+    isActive: true,
+    items: [
+      {
+        title: "Executive Overview",
+        url: "/dashboard",
+        icon: Gauge,
+      },
+      {
+        title: "Live Monitoring",
+        url: "/dashboard/monitoring",
+        icon: Activity,
+      },
+      {
+        title: "Asset Health Index",
+        url: "/dashboard/health",
+        icon: Thermometer,
+      },
+    ],
   },
-  navMain: [
-    {
-      title: "Command Center",
-      url: "/dashboard",
-      icon: LayoutDashboard,
-      isActive: true,
-      items: [
-        {
-          title: "Executive Overview",
-          url: "/dashboard",
-          icon: Gauge,
-        },
-        {
-          title: "Live Monitoring",
-          url: "/dashboard/monitoring",
-          icon: Activity,
-        },
-        {
-          title: "Asset Health Index",
-          url: "/dashboard/health",
-          icon: Thermometer,
-        },
-      ],
-    },
-    {
-      title: "Geospatial Intelligence",
-      url: "/geospatial",
-      icon: Map,
-      items: [
-        {
-          title: "Asset Mapping",
-          url: "/geospatial/assets",
-          icon: Boxes,
-        },
-        {
-          title: "Weather Overlay",
-          url: "/geospatial/weather",
-          icon: CloudRain,
-        },
-        {
-          title: "Resource Distribution",
-          url: "/geospatial/resources",
-          icon: Network,
-        },
-        {
-          title: "Site Analysis",
-          url: "/geospatial/analysis",
-          icon: Maximize2,
-        },
-      ],
-    },
-    {
-      title: "Power Intelligence",
-      url: "/power",
-      icon: Zap,
-      items: [
-        {
-          title: "Generation Control",
-          url: "/power/control",
-          icon: Power,
-        },
-        {
-          title: "Production Forecast",
-          url: "/power/forecast",
-          icon: LineChart,
-        },
-        {
-          title: "Grid Integration",
-          url: "/power/grid",
-          icon: Network,
-        },
-        {
-          title: "Energy Trading",
-          url: "/power/trading",
-          icon: Binary,
-        },
-      ],
-    },
-    {
-      title: "Asset Performance",
-      url: "/performance",
-      icon: Gauge,
-      items: [
-        {
-          title: "Reliability Metrics",
-          url: "/performance/reliability",
-          icon: Timer,
-        },
-        {
-          title: "Availability Analysis",
-          url: "/performance/availability",
-          icon: Percent,
-        },
-        {
-          title: "Efficiency Tracking",
-          url: "/performance/efficiency",
-          icon: Activity,
-        },
-        {
-          title: "Maintenance Impact",
-          url: "/performance/maintenance",
-          icon: Workflow,
-        },
-      ],
-    },
-    {
-      title: "Environmental Intel",
-      url: "/environmental",
-      icon: CloudLightning,
-      items: [
-        {
-          title: "Weather Forecasting",
-          url: "/environmental/forecast",
-          icon: CloudRain,
-        },
-        {
-          title: "Resource Assessment",
-          url: "/environmental/resources",
-          icon: Gauge,
-        },
-        {
-          title: "Impact Analysis",
-          url: "/environmental/impact",
-          icon: Leaf,
-        },
-        {
-          title: "Condition Monitoring",
-          url: "/environmental/conditions",
-          icon: Thermometer,
-        },
-      ],
-    },
-    {
-      title: "Smart Alerts",
-      url: "/alerts",
-      icon: Bell,
-      items: [
-        {
-          title: "Alert Configuration",
-          url: "/alerts/config",
-          icon: Settings2,
-        },
-        {
-          title: "Notification Rules",
-          url: "/alerts/rules",
-          icon: Radio,
-        },
-        {
-          title: "Event History",
-          url: "/alerts/history",
-          icon: Clock,
-        },
-        {
-          title: "Response Automation",
-          url: "/alerts/automation",
-          icon: Cpu,
-        },
-      ],
-    },
-    {
-      title: "Asset Management",
-      url: "/assets",
-      icon: Database,
-      items: [
-        {
-          title: "Wind Fleet",
-          url: "/assets/wind",
-          icon: Wind,
-        },
-        {
-          title: "Solar Portfolio",
-          url: "/assets/solar",
-          icon: Sun,
-        },
-        {
-          title: "Storage Systems",
-          url: "/assets/storage",
-          icon: Battery,
-        },
-        {
-          title: "Hybrid Plants",
-          url: "/assets/hybrid",
-          icon: Zap,
-        },
-      ],
-    },
-    {
-      title: "Enterprise",
-      url: "/enterprise",
-      icon: Building2,
-      items: [
-        {
-          title: "Team Management",
-          url: "/enterprise/teams",
-          icon: Users,
-        },
-        {
-          title: "Access Control",
-          url: "/enterprise/access",
-          icon: ShieldCheck,
-        },
-        {
-          title: "System Logs",
-          url: "/enterprise/logs",
-          icon: FileText,
-        },
-        {
-          title: "Integrations",
-          url: "/enterprise/integrations",
-          icon: Share2,
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Documentation",
-      url: "/docs",
-      icon: BookOpen,
-    },
-    {
-      title: "Security Center",
-      url: "/security",
-      icon: ShieldCheck,
-    },
-  ],
-}
+  {
+    title: "Geospatial Intelligence",
+    url: "/geospatial",
+    icon: Map,
+    items: [
+      {
+        title: "Asset Mapping",
+        url: "/geospatial/assets",
+        icon: Boxes,
+      },
+      {
+        title: "Weather Overlay",
+        url: "/geospatial/weather",
+        icon: CloudRain,
+      },
+      {
+        title: "Resource Distribution",
+        url: "/geospatial/resources",
+        icon: Network,
+      },
+      {
+        title: "Site Analysis",
+        url: "/geospatial/analysis",
+        icon: Maximize2,
+      },
+    ],
+  },
+  {
+    title: "Power Intelligence",
+    url: "/power",
+    icon: Zap,
+    items: [
+      {
+        title: "Generation Control",
+        url: "/power/control",
+        icon: Power,
+      },
+      {
+        title: "Production Forecast",
+        url: "/power/forecast",
+        icon: LineChart,
+      },
+      {
+        title: "Grid Integration",
+        url: "/power/grid",
+        icon: Network,
+      },
+      {
+        title: "Energy Trading",
+        url: "/power/trading",
+        icon: Binary,
+      },
+    ],
+  },
+  {
+    title: "Asset Performance",
+    url: "/performance",
+    icon: Gauge,
+    items: [
+      {
+        title: "Reliability Metrics",
+        url: "/performance/reliability",
+        icon: Timer,
+      },
+      {
+        title: "Availability Analysis",
+        url: "/performance/availability",
+        icon: Percent,
+      },
+      {
+        title: "Efficiency Tracking",
+        url: "/performance/efficiency",
+        icon: Activity,
+      },
+      {
+        title: "Maintenance Impact",
+        url: "/performance/maintenance",
+        icon: Workflow,
+      },
+    ],
+  },
+  {
+    title: "Environmental Intel",
+    url: "/environmental",
+    icon: CloudLightning,
+    items: [
+      {
+        title: "Weather Forecasting",
+        url: "/environmental/forecast",
+        icon: CloudRain,
+      },
+      {
+        title: "Resource Assessment",
+        url: "/environmental/resources",
+        icon: Gauge,
+      },
+      {
+        title: "Impact Analysis",
+        url: "/environmental/impact",
+        icon: Leaf,
+      },
+      {
+        title: "Condition Monitoring",
+        url: "/environmental/conditions",
+        icon: Thermometer,
+      },
+    ],
+  },
+  {
+    title: "Smart Alerts",
+    url: "/alerts",
+    icon: Bell,
+    items: [
+      {
+        title: "Alert Configuration",
+        url: "/alerts/config",
+        icon: Settings2,
+      },
+      {
+        title: "Notification Rules",
+        url: "/alerts/rules",
+        icon: Radio,
+      },
+      {
+        title: "Event History",
+        url: "/alerts/history",
+        icon: Clock,
+      },
+      {
+        title: "Response Automation",
+        url: "/alerts/automation",
+        icon: Cpu,
+      },
+    ],
+  },
+  {
+    title: "Asset Management",
+    url: "/assets",
+    icon: Database,
+    items: [
+      {
+        title: "Wind Fleet",
+        url: "/assets/wind",
+        icon: Wind,
+      },
+      {
+        title: "Solar Portfolio",
+        url: "/assets/solar",
+        icon: Sun,
+      },
+      {
+        title: "Storage Systems",
+        url: "/assets/storage",
+        icon: Battery,
+      },
+      {
+        title: "Hybrid Plants",
+        url: "/assets/hybrid",
+        icon: Zap,
+      },
+    ],
+  },
+  {
+    title: "Enterprise",
+    url: "/enterprise",
+    icon: Building2,
+    items: [
+      {
+        title: "Team Management",
+        url: "/enterprise/teams",
+        icon: Users,
+      },
+      {
+        title: "Access Control",
+        url: "/enterprise/access",
+        icon: ShieldCheck,
+      },
+      {
+        title: "System Logs",
+        url: "/enterprise/logs",
+        icon: FileText,
+      },
+      {
+        title: "Integrations",
+        url: "/enterprise/integrations",
+        icon: Share2,
+      },
+    ],
+  },
+]
+
+
+const navSecondaryData = [
+  {
+    title: "Documentation",
+    url: "/docs",
+    icon: BookOpen,
+  },
+  {
+    title: "Security Center",
+    url: "/security",
+    icon: ShieldCheck,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+
+  if (!user) return null
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -304,11 +304,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMainData} />
+        <NavSecondary items={navSecondaryData} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={{
+          id: user.id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          role: user.role,
+          company: user.company
+        }} />
       </SidebarFooter>
     </Sidebar>
   )
