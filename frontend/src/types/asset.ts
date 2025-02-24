@@ -1,5 +1,8 @@
 export interface Asset {
   id: number;
   name: string;
-  // Add other asset properties as needed
+  location: string;
+  type: 'wind' | 'solar';
+  status: 'Online' | 'Offline' | 'Maintenance';
+  power: string;
 } 
