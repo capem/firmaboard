@@ -1,0 +1,122 @@
+INFO 2025-02-21 20:24:47,127 autoreload 26824 25116 Watching for file changes with StatReloader
+INFO 2025-02-21 20:25:33,660 autoreload 3696 24544 Watching for file changes with StatReloader
+INFO 2025-02-21 20:29:24,282 autoreload 14720 21104 Watching for file changes with StatReloader
+INFO 2025-02-21 20:30:00,734 autoreload 17600 21200 Watching for file changes with StatReloader
+WARNING 2025-02-21 20:30:05,276 log 17600 31664 Not Found: /
+WARNING 2025-02-21 20:30:05,332 basehttp 17600 31664 "GET / HTTP/1.1" 404 2787
+WARNING 2025-02-21 20:30:06,957 log 17600 31664 Not Found: /favicon.ico
+WARNING 2025-02-21 20:30:06,959 basehttp 17600 31664 "GET /favicon.ico HTTP/1.1" 404 2838
+INFO 2025-02-21 20:30:12,823 basehttp 17600 31664 "GET /api-auth/login HTTP/1.1" 301 0
+INFO 2025-02-21 20:30:12,991 basehttp 17600 31792 "GET /api-auth/login/ HTTP/1.1" 200 2700
+INFO 2025-02-21 20:30:13,775 basehttp 17600 17208 "GET /static/rest_framework/css/prettify.css HTTP/1.1" 200 817
+INFO 2025-02-21 20:30:13,777 basehttp 17600 12372 "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 200 3426
+INFO 2025-02-21 20:30:13,976 basehttp 17600 21888 "GET /static/rest_framework/css/default.css HTTP/1.1" 200 1152
+INFO 2025-02-21 20:30:14,027 basehttp 17600 31792 "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 200 121457
+INFO 2025-02-21 20:30:14,050 basehttp 17600 31792 "GET /static/rest_framework/img/grid.png HTTP/1.1" 200 1458
+INFO 2025-02-21 20:30:18,875 basehttp 17600 31792 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-02-21 20:30:19,066 basehttp 17600 31792 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4160
+INFO 2025-02-21 20:30:19,187 basehttp 17600 12372 "GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+INFO 2025-02-21 20:30:19,190 basehttp 17600 21888 "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2804
+INFO 2025-02-21 20:30:19,191 basehttp 17600 17208 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-02-21 20:30:19,192 basehttp 17600 31792 "GET /static/admin/css/base.css HTTP/1.1" 200 22092
+INFO 2025-02-21 20:30:19,223 basehttp 17600 15140 "GET /static/admin/css/login.css HTTP/1.1" 200 951
+INFO 2025-02-21 20:30:19,288 basehttp 17600 20880 "GET /static/admin/css/responsive.css HTTP/1.1" 200 17972
+INFO 2025-02-21 20:30:19,358 basehttp 17600 20880 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-02-21 20:30:23,377 basehttp 17600 20880 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2025-02-21 20:30:23,696 basehttp 17600 20880 "GET /admin/ HTTP/1.1" 200 14230
+INFO 2025-02-21 20:30:23,789 basehttp 17600 20880 "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-02-21 20:30:23,937 basehttp 17600 20880 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+INFO 2025-02-21 20:30:23,942 basehttp 17600 15140 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO 2025-02-21 20:30:34,700 autoreload 17600 21200 C:\Users\saada\Documents\Tarec\Firmaboard\backend\firmaboard\urls.py changed, reloading.
+INFO 2025-02-21 20:30:37,627 autoreload 25792 16396 Watching for file changes with StatReloader
+INFO 2025-02-24 19:12:08,641 autoreload 29080 17460 Watching for file changes with StatReloader
+INFO 2025-02-24 19:20:05,453 autoreload 4140 3912 Watching for file changes with StatReloader
+INFO 2025-02-24 19:20:15,359 basehttp 4140 37736 "OPTIONS /api/core/login/ HTTP/1.1" 200 0
+WARNING 2025-02-24 19:20:16,988 log 4140 33612 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:20:16,989 basehttp 4140 33612 "POST /api/core/login/ HTTP/1.1" 401 31
+INFO 2025-02-24 19:20:51,827 basehttp 4140 37736 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-02-24 19:20:51,971 views 4140 33612 Attempting to register user with data: {'email': 'test@test.com', 'first_name': 'Cristobal', 'last_name': 'Ohara', 'phone_number': '+212638689268', 'address': 'somwhere over the rainbow', 'role': 'owner', 'company': {'name': 'Langley and Gill Traders', 'registration_number': 'FB1740424851822', 'address': 'somwhere over the rainbow', 'contact_email': 'test@test.com', 'contact_phone': '+212638689268', 'definitions': ['solar']}}
+INFO 2025-02-24 19:20:51,997 views 4140 33612 Created company: Langley and Gill Traders (ID: 3)
+INFO 2025-02-24 19:20:52,957 views 4140 33612 Created user: test@test.com (ID: 2)
+INFO 2025-02-24 19:20:53,011 basehttp 4140 33612 "POST /api/core/register/ HTTP/1.1" 201 630
+INFO 2025-02-24 19:20:54,291 basehttp 4140 37736 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-02-24 19:20:54,291 basehttp 4140 32844 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-02-24 19:20:54,597 basehttp 4140 33612 "GET /api/farms/assets/ HTTP/1.1" 200 443
+INFO 2025-02-24 19:20:54,814 basehttp 4140 3752 "GET /api/farms/assets/ HTTP/1.1" 200 443
+INFO 2025-02-24 19:20:58,978 basehttp 4140 32844 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-02-24 19:20:58,979 basehttp 4140 37736 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-02-24 19:20:59,279 basehttp 4140 3752 "GET /api/core/session/ HTTP/1.1" 200 124
+INFO 2025-02-24 19:20:59,567 basehttp 4140 33612 "GET /api/core/session/ HTTP/1.1" 200 124
+INFO 2025-02-24 19:20:59,753 basehttp 4140 3752 "GET /api/farms/assets/ HTTP/1.1" 200 443
+INFO 2025-02-24 19:21:00,010 basehttp 4140 33612 "GET /api/farms/assets/ HTTP/1.1" 200 443
+INFO 2025-02-24 19:21:06,765 basehttp 4140 37736 "OPTIONS /api/core/logout/ HTTP/1.1" 200 0
+INFO 2025-02-24 19:21:06,955 views 4140 33612 User 2 successfully logged out
+INFO 2025-02-24 19:21:06,957 basehttp 4140 33612 "POST /api/core/logout/ HTTP/1.1" 200 37
+WARNING 2025-02-24 19:21:13,252 log 4140 33612 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:21:13,252 basehttp 4140 33612 "POST /api/core/login/ HTTP/1.1" 401 31
+WARNING 2025-02-24 19:21:17,792 log 4140 33612 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:21:17,793 basehttp 4140 33612 "POST /api/core/login/ HTTP/1.1" 401 31
+INFO 2025-02-24 19:24:06,108 autoreload 29800 29568 Watching for file changes with StatReloader
+WARNING 2025-02-24 19:24:14,848 log 29800 34552 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:24:14,849 basehttp 29800 34552 "POST /api/core/login/ HTTP/1.1" 401 31
+WARNING 2025-02-24 19:24:21,603 log 29800 34552 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:24:21,605 basehttp 29800 34552 "POST /api/core/login/ HTTP/1.1" 401 31
+WARNING 2025-02-24 19:24:28,078 log 29800 34512 Not Found: /
+WARNING 2025-02-24 19:24:28,081 basehttp 29800 34512 "GET / HTTP/1.1" 404 2787
+WARNING 2025-02-24 19:24:30,057 log 29800 34512 Not Found: /favicon.ico
+WARNING 2025-02-24 19:24:30,058 basehttp 29800 34512 "GET /favicon.ico HTTP/1.1" 404 2838
+INFO 2025-02-24 19:24:32,328 basehttp 29800 34512 "GET /admin/ HTTP/1.1" 302 0
+INFO 2025-02-24 19:24:32,418 basehttp 29800 34512 "GET /admin/login/?next=/admin/ HTTP/1.1" 200 4160
+INFO 2025-02-24 19:24:33,272 basehttp 29800 12424 "GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2810
+INFO 2025-02-24 19:24:33,287 basehttp 29800 29728 "GET /static/admin/js/theme.js HTTP/1.1" 200 1653
+INFO 2025-02-24 19:24:33,302 basehttp 29800 22460 "GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2804
+INFO 2025-02-24 19:24:33,380 basehttp 29800 34512 "GET /static/admin/css/base.css HTTP/1.1" 200 22092
+INFO 2025-02-24 19:24:33,397 basehttp 29800 17956 "GET /static/admin/css/login.css HTTP/1.1" 200 951
+INFO 2025-02-24 19:24:33,401 basehttp 29800 28876 "GET /static/admin/css/responsive.css HTTP/1.1" 200 17972
+INFO 2025-02-24 19:24:33,404 basehttp 29800 34512 "GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+INFO 2025-02-24 19:24:38,537 basehttp 29800 34512 "POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+INFO 2025-02-24 19:24:38,716 basehttp 29800 34512 "GET /admin/ HTTP/1.1" 200 14230
+INFO 2025-02-24 19:24:38,783 basehttp 29800 34512 "GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+INFO 2025-02-24 19:24:38,883 basehttp 29800 34512 "GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+INFO 2025-02-24 19:24:38,883 basehttp 29800 28876 "GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+INFO 2025-02-24 19:24:41,341 basehttp 29800 34512 "GET /admin/core/customuser/ HTTP/1.1" 200 19927
+INFO 2025-02-24 19:24:41,433 basehttp 29800 34512 "GET /static/admin/css/changelists.css HTTP/1.1" 200 6878
+INFO 2025-02-24 19:24:41,434 basehttp 29800 22460 "GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+INFO 2025-02-24 19:24:41,435 basehttp 29800 12424 "GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 9097
+INFO 2025-02-24 19:24:41,435 basehttp 29800 29728 "GET /static/admin/js/core.js HTTP/1.1" 200 6208
+INFO 2025-02-24 19:24:41,448 basehttp 29800 17956 "GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 285314
+INFO 2025-02-24 19:24:41,451 basehttp 29800 34512 "GET /static/admin/js/actions.js HTTP/1.1" 200 8076
+INFO 2025-02-24 19:24:41,451 basehttp 29800 22460 "GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+INFO 2025-02-24 19:24:41,454 basehttp 29800 12424 "GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+INFO 2025-02-24 19:24:41,459 basehttp 29800 17956 "GET /static/admin/img/search.svg HTTP/1.1" 200 458
+INFO 2025-02-24 19:24:41,463 basehttp 29800 29728 "GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 325171
+INFO 2025-02-24 19:24:41,473 basehttp 29800 29728 "GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+INFO 2025-02-24 19:24:41,575 basehttp 29800 29728 "GET /static/admin/js/filters.js HTTP/1.1" 200 978
+INFO 2025-02-24 19:24:41,677 basehttp 29800 28876 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-02-24 19:24:41,732 basehttp 29800 28876 "GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 331
+INFO 2025-02-24 19:24:41,735 basehttp 29800 29728 "GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+INFO 2025-02-24 19:24:41,737 basehttp 29800 17956 "GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 200 581
+WARNING 2025-02-24 19:24:50,981 log 29800 34552 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:24:50,982 basehttp 29800 34552 "POST /api/core/login/ HTTP/1.1" 401 31
+WARNING 2025-02-24 19:24:56,409 log 29800 11084 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:24:56,410 basehttp 29800 11084 "POST /api/core/login/ HTTP/1.1" 401 31
+INFO 2025-02-24 19:24:59,428 basehttp 29800 6896 "GET /admin/core/customuser/1/change/ HTTP/1.1" 200 35916
+INFO 2025-02-24 19:24:59,519 basehttp 29800 6896 "GET /static/admin/css/forms.css HTTP/1.1" 200 8794
+INFO 2025-02-24 19:24:59,549 basehttp 29800 27288 "GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+INFO 2025-02-24 19:24:59,549 basehttp 29800 27816 "GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 15502
+INFO 2025-02-24 19:24:59,561 basehttp 29800 6896 "GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+INFO 2025-02-24 19:24:59,671 basehttp 29800 6896 "GET /static/admin/css/widgets.css HTTP/1.1" 200 11564
+INFO 2025-02-24 19:24:59,706 basehttp 29800 6896 "GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 200 392
+INFO 2025-02-24 19:24:59,725 basehttp 29800 6896 "GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+INFO 2025-02-24 19:24:59,778 basehttp 29800 32316 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+INFO 2025-02-24 19:24:59,942 basehttp 29800 32316 "GET /static/admin/img/icon-unknown.svg HTTP/1.1" 200 655
+INFO 2025-02-24 19:24:59,943 basehttp 29800 27816 "GET /static/admin/img/icon-unknown-alt.svg HTTP/1.1" 200 655
+INFO 2025-02-24 19:24:59,944 basehttp 29800 6896 "GET /static/admin/img/selector-icons.svg HTTP/1.1" 200 3291
+INFO 2025-02-24 19:25:16,258 basehttp 29800 5516 "GET /admin/core/customuser/1/password/ HTTP/1.1" 200 14923
+INFO 2025-02-24 19:25:16,336 basehttp 29800 5516 "GET /static/admin/css/unusable_password_field.css HTTP/1.1" 200 663
+INFO 2025-02-24 19:25:16,337 basehttp 29800 33928 "GET /static/admin/js/unusable_password_field.js HTTP/1.1" 200 1480
+INFO 2025-02-24 19:25:27,729 basehttp 29800 33928 "POST /admin/core/customuser/1/password/ HTTP/1.1" 302 0
+INFO 2025-02-24 19:25:27,923 basehttp 29800 33928 "GET /admin/core/customuser/1/change/ HTTP/1.1" 200 36052
+INFO 2025-02-24 19:25:28,166 basehttp 29800 33928 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
+WARNING 2025-02-24 19:25:34,077 log 29800 18656 Unauthorized: /api/core/login/
+WARNING 2025-02-24 19:25:34,078 basehttp 29800 18656 "POST /api/core/login/ HTTP/1.1" 401 31
