@@ -120,6 +120,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async ({ credential, rememberMe = false }: { credential: string; rememberMe?: boolean }): Promise<{ success: boolean; error?: AuthError }> => {
+    try {
+      const { data } = await api.post<{ user: User; tokens: AuthTokens }>(
+        ENDPOINTS.auth.googleOAuth,
+        { id_token: credential, rememberMe }
+      );
+      setUser(data.user);
+      storeTokens(data.tokens, rememberMe);
+      toast({ title: "Welcome!", description: "Signed in with Google" });
+      navigate('/dashboard');
+      return { success: true };
+    } catch (error) {
+      const authError = handleAuthError(error);
+      return { success: false, error: authError };
+    }
+  };
+
   const logout = async () => {
     const refreshToken = getStoredRefreshToken();
     
@@ -146,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: !!user,
       isLoading,
       login,
+      loginWithGoogle,
       logout,
       checkAuth,
       setUser,

@@ -31,6 +31,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginCredentials) => Promise<{ success: boolean; error?: AuthError }>;
+  loginWithGoogle: (params: { credential: string; rememberMe?: boolean }) => Promise<{ success: boolean; error?: AuthError }>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<boolean>;
   setUser: (user: User | null) => void;

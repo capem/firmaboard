@@ -13,6 +13,8 @@ from rest_framework.schemas import AutoSchema
 import logging
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 
 User = get_user_model()
 
@@ -313,6 +315,98 @@ def get_user_session(request):
             'role': request.user.role,
         }
     }, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+@schema(AutoSchema())
+def google_oauth_login(request):
+    """
+    Verify a Google ID token and return JWT tokens for the user.
+
+    Request body:
+    {
+        "id_token": "<google id token>",
+        "rememberMe": false
+    }
+    """
+    id_token_value = request.data.get('id_token')
+    remember_me = bool(request.data.get('rememberMe', False))
+
+    if not id_token_value:
+        return Response({'error': 'id_token is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
+    if not client_id:
+        logger.error("GOOGLE_CLIENT_ID is not configured")
+        return Response({'error': 'OAuth not configured'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    try:
+        request_adapter = google_requests.Request()
+        idinfo = google_id_token.verify_oauth2_token(id_token_value, request_adapter, audience=client_id)
+
+        # Basic validation
+        issuer = idinfo.get('iss')
+        if issuer not in ('accounts.google.com', 'https://accounts.google.com'):
+            logger.warning(f"Invalid token issuer: {issuer}")
+            return Response({'error': 'Invalid token issuer'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        email = idinfo.get('email')
+        email_verified = idinfo.get('email_verified', False)
+        if not email or not email_verified:
+            return Response({'error': 'Email not verified'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Optional domain restriction
+        allowed_domains = getattr(settings, 'GOOGLE_ALLOWED_DOMAINS', [])
+        if allowed_domains:
+            domain = email.split('@')[-1].lower()
+            if domain not in allowed_domains:
+                logger.warning(f"Unauthorized domain: {domain}")
+                return Response({'error': 'Domain not allowed'}, status=status.HTTP_403_FORBIDDEN)
+
+        first_name = idinfo.get('given_name', '')
+        last_name = idinfo.get('family_name', '')
+
+        # Get or create user
+        try:
+            user = User.objects.get(username=email)
+            # Optionally update profile names if empty
+            updated = False
+            if first_name and not user.first_name:
+                user.first_name = first_name; updated = True
+            if last_name and not user.last_name:
+                user.last_name = last_name; updated = True
+            if updated:
+                user.save(update_fields=['first_name', 'last_name'])
+        except User.DoesNotExist:
+            user = User(
+                username=email,
+                email=email,
+                first_name=first_name,
+                last_name=last_name,
+            )
+            user.set_unusable_password()
+            user.save()
+            logger.info(f"Created user via Google OAuth: {email} (ID: {user.id})")
+
+        tokens = get_tokens_for_user(user, remember_me)
+        return Response({
+            'message': 'Login successful',
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role,
+            },
+            'tokens': tokens,
+        }, status=status.HTTP_200_OK)
+
+    except ValueError as e:
+        logger.error(f"Google token validation error: {str(e)}")
+        return Response({'error': 'Invalid token'}, status=status.HTTP_401_UNAUTHORIZED)
+    except Exception as e:
+        logger.error(f"Unexpected error in Google OAuth login: {str(e)}")
+        return Response({'error': 'Authentication failed'}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -212,6 +212,12 @@ CSRF_TRUSTED_ORIGINS = [
 LOGIN_REDIRECT_URL = '/api/core/'
 LOGOUT_REDIRECT_URL = '/api-auth/login/'  # Redirect to login page after logout
 
+# Google OAuth settings
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+# Comma-separated list of allowed domains (optional). Example: "example.com,another.com"
+_GOOGLE_ALLOWED_DOMAINS = os.getenv("GOOGLE_ALLOWED_DOMAINS", "").strip()
+GOOGLE_ALLOWED_DOMAINS = [d.strip().lower() for d in _GOOGLE_ALLOWED_DOMAINS.split(',') if d.strip()] if _GOOGLE_ALLOWED_DOMAINS else []
+
 # Logging Configuration
 LOGGING = {
     'version': 1,

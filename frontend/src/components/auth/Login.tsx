@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import * as React from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,54 +8,132 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Wind, ArrowRight, Loader2, AlertCircle, Lock, Mail, Shield } from 'lucide-react';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Wind,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  Lock,
+  Mail,
+  Shield,
+} from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from '@/contexts/AuthContext';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useAuth } from "@/contexts/AuthContext";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { LoginCredentials, LoginFormErrors } from '@/types/auth';
-import { validateEmail, validatePassword } from '@/utils/auth';
+import { LoginCredentials, LoginFormErrors } from "@/types/auth";
+import { validateEmail, validatePassword } from "@/utils/auth";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated } = useAuth();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [formData, setFormData] = React.useState<LoginCredentials>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     rememberMe: false,
   });
   const [errors, setErrors] = React.useState<LoginFormErrors>({});
   const [attempts, setAttempts] = React.useState(0);
 
+  const handleGoogleSignInClick = React.useCallback(() => {
+    console.log("Google sign-in button clicked");
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as
+      | string
+      | undefined;
+    console.log("Client ID:", clientId ? "Set" : "Not set");
+
+    if (!clientId) {
+      console.error("VITE_GOOGLE_CLIENT_ID is not configured");
+      alert(
+        "Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID in your .env.development file."
+      );
+      return;
+    }
+
+    // @ts-ignore - window.google declared in global.d.ts
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      try {
+        // Use popup mode for explicit button click
+        // @ts-ignore
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            const credential = response?.credential as string | undefined;
+            if (credential) {
+              loginWithGoogle({ credential, rememberMe: formData.rememberMe });
+            }
+          },
+          ux_mode: "popup",
+        });
+        // @ts-ignore
+        window.google.accounts.id.prompt();
+      } catch (error) {
+        console.error("Error triggering Google sign-in:", error);
+      }
+    } else {
+      // Load Google Identity Services if not already loaded
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        // @ts-ignore
+        if (
+          window.google &&
+          window.google.accounts &&
+          window.google.accounts.id
+        ) {
+          // @ts-ignore
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (response: any) => {
+              const credential = response?.credential as string | undefined;
+              if (credential) {
+                loginWithGoogle({
+                  credential,
+                  rememberMe: formData.rememberMe,
+                });
+              }
+            },
+            ux_mode: "popup",
+          });
+          // @ts-ignore
+          window.google.accounts.id.prompt();
+        }
+      };
+      document.body.appendChild(script);
+    }
+  }, [formData.rememberMe, loginWithGoogle]);
+
   // Redirect if already authenticated
   React.useEffect(() => {
     if (isAuthenticated) {
-      const from = (location.state as any)?.from?.pathname || '/dashboard';
+      const from = (location.state as any)?.from?.pathname || "/dashboard";
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
-    setErrors(prev => ({ ...prev, [id]: undefined }));
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    setErrors((prev) => ({ ...prev, [id]: undefined }));
   };
 
   const handleRememberMeChange = (checked: boolean) => {
-    setFormData(prev => ({ ...prev, rememberMe: checked }));
+    setFormData((prev) => ({ ...prev, rememberMe: checked }));
   };
 
   const validateForm = (): boolean => {
     const newErrors: LoginFormErrors = {};
-    
+
     const emailError = validateEmail(formData.email);
     if (emailError) {
       newErrors.email = emailError;
@@ -75,7 +153,8 @@ const Login: React.FC = () => {
 
     if (attempts >= MAX_LOGIN_ATTEMPTS) {
       setErrors({
-        general: 'Too many login attempts. Please try again later or reset your password.',
+        general:
+          "Too many login attempts. Please try again later or reset your password.",
       });
       return;
     }
@@ -87,16 +166,72 @@ const Login: React.FC = () => {
 
     try {
       const result = await login(formData);
-      
+
       if (!result.success && result.error) {
-        setAttempts(prev => prev + 1);
+        setAttempts((prev) => prev + 1);
         setErrors({ general: result.error.message });
-        setFormData(prev => ({ ...prev, password: '' }));
+        setFormData((prev) => ({ ...prev, password: "" }));
       }
     } finally {
       setIsLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as
+      | string
+      | undefined;
+    if (!clientId) return;
+
+    // Load Google Identity Services script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      // @ts-ignore - window.google declared in global.d.ts
+      if (
+        window.google &&
+        window.google.accounts &&
+        window.google.accounts.id
+      ) {
+        // @ts-ignore
+        window.google.accounts.id.initialize({
+          client_id: clientId,
+          callback: (response: any) => {
+            const credential = response?.credential as string | undefined;
+            if (credential) {
+              loginWithGoogle({ credential, rememberMe: formData.rememberMe });
+            }
+          },
+          ux_mode: "popup",
+          auto_select: true,
+          cancel_on_tap_outside: true,
+          context: "signin",
+        });
+        // @ts-ignore
+        window.google.accounts.id.renderButton(
+          document.getElementById('googleSignInDiv'),
+          { 
+            theme: 'outline', 
+            size: 'large', 
+            width: 350,
+            type: 'standard',
+            text: 'continue_with',
+            shape: 'rectangular',
+            logo_alignment: 'left'
+          }
+        );
+        // Trigger One Tap prompt
+        // @ts-ignore
+        window.google.accounts.id.prompt();
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [loginWithGoogle, formData.rememberMe]);
 
   return (
     <div className="container relative min-h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -127,11 +262,15 @@ const Login: React.FC = () => {
           <div>
             <blockquote className="space-y-4">
               <p className="text-lg font-medium leading-relaxed">
-                "Firmaboard has revolutionized how we manage our renewable assets. The insights and control it provides are game-changing for our sustainability goals."
+                "Firmaboard has revolutionized how we manage our renewable
+                assets. The insights and control it provides are game-changing
+                for our sustainability goals."
               </p>
               <footer className="text-sm">
                 <p className="font-semibold">Sofia Davis</p>
-                <p className="opacity-85">Head of Renewable Energy Operations</p>
+                <p className="opacity-85">
+                  Head of Renewable Energy Operations
+                </p>
               </footer>
             </blockquote>
           </div>
@@ -186,7 +325,7 @@ const Login: React.FC = () => {
                     {errors.general && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
+                        animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         className="overflow-hidden"
                       >
@@ -212,13 +351,16 @@ const Login: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         disabled={isLoading}
-                        className={`pl-10 transition-all duration-200 ${errors.email
-                          ? 'border-destructive focus:ring-destructive/30'
-                          : 'hover:border-primary focus:ring-primary/30'
-                          }`}
+                        className={`pl-10 transition-all duration-200 ${
+                          errors.email
+                            ? "border-destructive focus:ring-destructive/30"
+                            : "hover:border-primary focus:ring-primary/30"
+                        }`}
                         autoComplete="email"
                         aria-invalid={!!errors.email}
-                        aria-describedby={errors.email ? "email-error" : undefined}
+                        aria-describedby={
+                          errors.email ? "email-error" : undefined
+                        }
                       />
                     </div>
                     {errors.email && (
@@ -246,13 +388,16 @@ const Login: React.FC = () => {
                         value={formData.password}
                         onChange={handleChange}
                         disabled={isLoading}
-                        className={`pl-10 transition-all duration-200 ${errors.password
-                          ? 'border-destructive focus:ring-destructive/30'
-                          : 'hover:border-primary focus:ring-primary/30'
-                          }`}
+                        className={`pl-10 transition-all duration-200 ${
+                          errors.password
+                            ? "border-destructive focus:ring-destructive/30"
+                            : "hover:border-primary focus:ring-primary/30"
+                        }`}
                         autoComplete="current-password"
                         aria-invalid={!!errors.password}
-                        aria-describedby={errors.password ? "password-error" : undefined}
+                        aria-describedby={
+                          errors.password ? "password-error" : undefined
+                        }
                       />
                     </div>
                     {errors.password && (
@@ -309,9 +454,21 @@ const Login: React.FC = () => {
                       </>
                     )}
                   </Button>
+
+                  <div className="relative flex items-center justify-center">
+                    <span className="px-2 text-xs text-muted-foreground bg-background">
+                      or
+                    </span>
+                  </div>
+
+                  <div id="googleSignInDiv" className="flex justify-center" />
+
                   <p className="text-sm text-center text-muted-foreground">
-                    New to Firmaboard?{' '}
-                    <Link to="/onboarding" className="font-medium text-primary hover:underline">
+                    New to Firmaboard?{" "}
+                    <Link
+                      to="/onboarding"
+                      className="font-medium text-primary hover:underline"
+                    >
                       Create an account
                     </Link>
                   </p>
@@ -336,4 +493,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login; 
+export default Login;

@@ -73,7 +73,8 @@ export const ENDPOINTS = {
         login: '/core/login/',
         logout: '/core/logout/',
         session: '/core/session/',
-        completeOnboarding: '/core/complete-onboarding/'
+        completeOnboarding: '/core/complete-onboarding/',
+        googleOAuth: '/core/oauth/google/'
     },
     farms: {
         assets: '/farms/assets/'
