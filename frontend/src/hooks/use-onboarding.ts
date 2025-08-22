@@ -42,6 +42,8 @@ interface RegisterRequest {
     contact_email: string;
     contact_phone: string;
     definitions: string[];
+    main_output: string;
+    data_connection: string;
   };
 }
 
@@ -183,6 +185,8 @@ export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
         contact_email: formData.email.trim(),
         contact_phone: formattedPhone,
         definitions: formData.companyDefinitions,
+        main_output: formData.mainOutput,
+        data_connection: formData.dataConnection,
       },
     };
   };

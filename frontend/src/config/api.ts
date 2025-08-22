@@ -78,5 +78,8 @@ export const ENDPOINTS = {
     },
     farms: {
         assets: '/farms/assets/'
+    },
+    dataImport: {
+        uploads: '/data-import/uploads/'
     }
 } as const; 

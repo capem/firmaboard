@@ -87,53 +87,56 @@ def register_user(request):
     ```
     """
     try:
-        with transaction.atomic():
-            # Log the received data (excluding password)
-            safe_data = {**request.data}
-            safe_data.pop('password', None)
-            logger.info(f"Attempting to register user with data: {safe_data}")
+        # Log the received data (excluding password)
+        safe_data = {k: v for k, v in request.data.items() if k != 'password'}
+        logger.info(f"Attempting to register user with data: {safe_data}")
 
+        # Basic validation for required fields
+        email = request.data.get('email')
+        password = request.data.get('password')
+        if not email or not password:
+            raise ValueError("Email and password are required.")
+
+        with transaction.atomic():
             # Check if user already exists
-            email = request.data.get('email')
             if User.objects.filter(username=email).exists():
                 raise ValueError("A user with this email already exists")
 
-            # Validate company data
+            # Validate and create company
             company_data = request.data.get('company')
             if not company_data:
                 raise ValueError("Company data is required")
-            
+
             required_company_fields = ['name', 'registration_number', 'address', 'contact_email', 'contact_phone']
             missing_fields = [field for field in required_company_fields if not company_data.get(field)]
             if missing_fields:
                 raise ValueError(f"Missing required company fields: {', '.join(missing_fields)}")
 
-            # Create company
             company = Company.objects.create(
-                name=company_data['name'],
-                registration_number=company_data['registration_number'],
-                address=company_data['address'],
-                contact_email=company_data['contact_email'],
-                contact_phone=company_data['contact_phone']
+                name=company_data.get('name'),
+                registration_number=company_data.get('registration_number'),
+                address=company_data.get('address'),
+                contact_email=company_data.get('contact_email'),
+                contact_phone=company_data.get('contact_phone'),
+                definitions=company_data.get('definitions', []),
+                main_output=company_data.get('main_output'),
+                data_connection=company_data.get('data_connection')
             )
             logger.info(f"Created company: {company.name} (ID: {company.id})")
 
-            # Create user
+            # Create user using .get() for safety
             user_data = {
-                'email': request.data['email'],
-                'username': request.data['email'],
-                'first_name': request.data['first_name'],
-                'last_name': request.data['last_name'],
-                'phone_number': request.data['phone_number'],
-                'address': request.data['address'],
+                'email': email,
+                'username': email,
+                'first_name': request.data.get('first_name', ''),
+                'last_name': request.data.get('last_name', ''),
+                'phone_number': request.data.get('phone_number'),
+                'address': request.data.get('address'),
                 'role': request.data.get('role', 'owner'),
                 'company': company,
             }
             
-            user = User.objects.create_user(
-                **user_data,
-                password=request.data['password']
-            )
+            user = User.objects.create_user(**user_data, password=password)
             logger.info(f"Created user: {user.email} (ID: {user.id})")
 
             tokens = get_tokens_for_user(user)
