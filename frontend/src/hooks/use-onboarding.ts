@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { api, ENDPOINTS } from '@/config/api';
-import { OnboardingData } from '@/types/onboarding';
+import { OnboardingData, DataImportTable } from '@/types/onboarding';
 import { validateEmail, validatePassword } from '@/utils/auth';
 import { storeTokens } from '@/utils/auth';
 import { AuthTokens } from '@/types/auth';
@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface UseOnboardingProps {
   initialStep?: number;
+  isGoogleOAuth?: boolean;
 }
 
 interface RegisterResponse {
@@ -47,9 +48,10 @@ interface RegisterRequest {
   };
 }
 
-const validateRegistrationData = (data: OnboardingData): string | undefined => {
-  if (!data.email) return 'Email is required';
-  if (!data.password) return 'Password is required';
+const validateRegistrationData = (data: OnboardingData, opts?: { isGoogleOAuth?: boolean }): string | undefined => {
+  const isGoogleOAuth = opts?.isGoogleOAuth;
+  if (!isGoogleOAuth && !data.email) return 'Email is required';
+  if (!isGoogleOAuth && !data.password) return 'Password is required';
   if (!data.firstName) return 'First name is required';
   if (!data.lastName) return 'Last name is required';
   if (!data.phoneNumber) return 'Phone number is required';
@@ -57,11 +59,19 @@ const validateRegistrationData = (data: OnboardingData): string | undefined => {
   if (!data.role) return 'Role is required';
   if (!data.companyName) return 'Company name is required';
   
-  const emailError = validateEmail(data.email);
-  if (emailError) return emailError;
+  if (!isGoogleOAuth) {
+    const emailError = validateEmail(data.email);
+    if (emailError) return emailError;
+  } else if (data.email) {
+    // If provided in Google flow, validate format but don't require
+    const emailError = validateEmail(data.email);
+    if (emailError) return emailError;
+  }
   
-  const passwordError = validatePassword(data.password);
-  if (passwordError) return passwordError;
+  if (!isGoogleOAuth) {
+    const passwordError = validatePassword(data.password);
+    if (passwordError) return passwordError;
+  }
 
   const digitsOnly = data.phoneNumber.replace(/[^+\d]/g, '');
   if (!digitsOnly.startsWith('+')) {
@@ -87,10 +97,10 @@ const validateRegistrationData = (data: OnboardingData): string | undefined => {
   return undefined;
 };
 
-export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
+export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnboardingProps = {}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { setUser } = useAuth();
+  const { setUser, user, setOnboardingRequired } = useAuth();
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [formData, setFormData] = useState<OnboardingData>({
     email: '',
@@ -104,13 +114,15 @@ export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
     companyDefinitions: [],
     mainOutput: '',
     dataConnection: '',
+    dataType: undefined,
+    dataFiles: [],
   });
 
   const validateStep = (step: number): boolean => {
     switch (step) {
       case 1: {
-        const emailError = validateEmail(formData.email);
-        const passwordError = validatePassword(formData.password);
+        const emailError = isGoogleOAuth ? undefined : validateEmail(formData.email);
+        const passwordError = isGoogleOAuth ? undefined : validatePassword(formData.password);
         
         // Phone validation
         const digitsOnly = formData.phoneNumber.replace(/[^+\d]/g, '');
@@ -152,6 +164,24 @@ export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
           });
           return false;
         }
+        if (formData.dataConnection === 'file-upload') {
+          if (!formData.dataType) {
+            toast({
+              title: "Select a data type",
+              description: "Choose which table to insert your data into.",
+              variant: "destructive",
+            });
+            return false;
+          }
+          if (!formData.dataFiles || formData.dataFiles.length === 0) {
+            toast({
+              title: "Add at least one file",
+              description: "Please select one or more files to upload.",
+              variant: "destructive",
+            });
+            return false;
+          }
+        }
         return true;
       default:
         return false;
@@ -191,8 +221,23 @@ export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
     };
   };
 
+  const uploadFilesToSelectedTable = async () => {
+    if (formData.dataConnection !== 'file-upload' || !formData.dataType || !formData.dataFiles.length) return;
+    let success = 0;
+    for (const file of formData.dataFiles) {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('target_table', formData.dataType as DataImportTable);
+      await api.post(ENDPOINTS.dataImport.uploads, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      success += 1;
+    }
+    toast({ title: 'Data uploaded', description: `${success} file(s) inserted into ${formData.dataType}.` });
+  };
+
   const handleSubmit = async () => {
-    const validationError = validateRegistrationData(formData);
+    const validationError = validateRegistrationData(formData, { isGoogleOAuth });
     if (validationError) {
       toast({
         title: "Validation Error",
@@ -203,6 +248,41 @@ export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
     }
 
     try {
+      if (isGoogleOAuth) {
+        // Build minimal payload for company setup using the authenticated user's email if not provided
+        const formattedPhone = formData.phoneNumber.trim().replace(/[^+\d]/g, '');
+        const payload = {
+          first_name: formData.firstName.trim(),
+          last_name: formData.lastName.trim(),
+          phone_number: formattedPhone,
+          address: formData.address.trim(),
+          role: formData.role.trim(),
+          company: {
+            name: formData.companyName.trim(),
+            registration_number: `FB${Date.now()}`,
+            address: formData.address.trim(),
+            contact_email: (formData.email || user?.email || '').trim(),
+            contact_phone: formattedPhone,
+            definitions: formData.companyDefinitions,
+            main_output: formData.mainOutput,
+            data_connection: formData.dataConnection,
+          },
+        };
+        const resp = await api.post(ENDPOINTS.auth.setupCompanyProfile, payload);
+        setUser(resp.data.user);
+        setOnboardingRequired(false);
+        // Optionally backend can return onboarding_required: false
+        try {
+          await uploadFilesToSelectedTable();
+        } catch (e: any) {
+          console.error('Data upload failed:', e);
+          toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
+        }
+        toast({ title: 'Profile completed', description: 'Redirecting to dashboard...' });
+        setTimeout(() => navigate('/dashboard'), 800);
+        return;
+      }
+
       const requestData = formatRegistrationData();
       const response = await api.post<RegisterResponse>(ENDPOINTS.auth.register, requestData);
       
@@ -216,6 +296,14 @@ export const useOnboarding = ({ initialStep = 1 }: UseOnboardingProps = {}) => {
         
         // Set the user in auth context to complete the login process
         setUser(response.data.user);
+        setOnboardingRequired(false);
+
+        try {
+          await uploadFilesToSelectedTable();
+        } catch (e: any) {
+          console.error('Data upload failed:', e);
+          toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
+        }
         
         toast({
           title: "Registration successful",

@@ -3,7 +3,6 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import {
   Database,
@@ -13,16 +12,17 @@ import {
   FileJson,
   FileSpreadsheet,
   Wifi,
-  Loader2,
-  X,
 } from "lucide-react";
 import UploadFilesStep from "./UploadFilesStep";
-import { api, ENDPOINTS } from "@/config/api";
-import { useToast } from "@/hooks/use-toast";
+import { DataImportTable } from '@/types/onboarding';
 
 interface DataConnectionStepProps {
   selectedConnection: string;
   setSelectedConnection: (connection: string) => void;
+  dataType?: DataImportTable;
+  setDataType: (type: DataImportTable) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
 }
 
 const connections = [
@@ -54,75 +54,11 @@ const connections = [
 const DataConnectionStep = ({
   selectedConnection,
   setSelectedConnection,
+  dataType,
+  setDataType,
+  files,
+  setFiles,
 }: DataConnectionStepProps) => {
-  const [files, setFiles] = React.useState<File[]>([]);
-  const [uploading, setUploading] = React.useState(false);
-  const [progress, setProgress] = React.useState<Record<string, number>>({});
-  const [results, setResults] = React.useState<
-    { key: string; name: string; ok: boolean; error?: string }[]
-  >([]);
-  const { toast } = useToast();
-
-  const keyFor = (f: File) => `${f.name}-${f.size}`;
-  const resetState = () => {
-    setProgress({});
-    setResults([]);
-  };
-
-  const handleUpload = async () => {
-    if (!files.length) {
-      toast({
-        title: "No files selected",
-        description: "Please choose one or more files to upload.",
-      });
-      return;
-    }
-    try {
-      setUploading(true);
-      setResults([]);
-      let successCount = 0;
-      const uploads = files.map(async (file) => {
-        const key = keyFor(file);
-        const form = new FormData();
-        form.append("file", file);
-        try {
-          await api.post(ENDPOINTS.dataImport.uploads, form, {
-            headers: { "Content-Type": "multipart/form-data" },
-            onUploadProgress: (evt) => {
-              if (!evt.total) return;
-              const pct = Math.round((evt.loaded / evt.total) * 100);
-              setProgress((p) => ({ ...p, [key]: pct }));
-            },
-          });
-          successCount += 1;
-          setResults((r) => [...r, { key, name: file.name, ok: true }]);
-        } catch (err: any) {
-          const message = err?.response?.data?.detail || "Upload failed";
-          setResults((r) => [
-            ...r,
-            { key, name: file.name, ok: false, error: message },
-          ]);
-        }
-      });
-      await Promise.all(uploads);
-      toast({
-        title: "Upload complete",
-        description: `${successCount} of ${files.length} file(s) uploaded.`,
-      });
-      setFiles([]);
-      setProgress({});
-    } catch (err: any) {
-      toast({
-        title: "Upload failed",
-        description:
-          err?.response?.data?.detail ||
-          "An error occurred while uploading files.",
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
   return (
     <div className="h-full flex flex-col h-220 w-200 overflow-y-auto border p-1">
       <div className="space-y-2">
@@ -213,98 +149,29 @@ const DataConnectionStep = ({
 
                           {connection.id === "file-upload" && (
                             <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">Data type to insert</Label>
+                                <RadioGroup value={dataType} onValueChange={(v) => setDataType(v as DataImportTable)} className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem id="dt-alarm" value="timeseries_alarm" />
+                                    <Label htmlFor="dt-alarm" className="text-sm">Alarms</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem id="dt-solar" value="timeseries_solarfarmtimeseries" />
+                                    <Label htmlFor="dt-solar" className="text-sm">Solar Farm Timeseries</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem id="dt-wind" value="timeseries_windfarmtimeseries" />
+                                    <Label htmlFor="dt-wind" className="text-sm">Wind Farm Timeseries</Label>
+                                  </div>
+                                </RadioGroup>
+                              </div>
                               <UploadFilesStep
                                 files={files}
                                 setFiles={(fs) => {
                                   setFiles(fs);
-                                  resetState();
                                 }}
                               />
-
-                              {files.length > 0 && (
-                                <div className="rounded-md border bg-card p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <p className="text-sm font-medium">
-                                      Ready to upload
-                                    </p>
-                                    {!uploading && (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                          setFiles([]);
-                                          resetState();
-                                        }}
-                                      >
-                                        <X className="h-4 w-4 mr-1" />
-                                        Clear
-                                      </Button>
-                                    )}
-                                  </div>
-                                  <ul className="space-y-2 max-h-40 overflow-auto">
-                                    {files.map((file) => {
-                                      const key = keyFor(file);
-                                      const pct = progress[key] || 0;
-                                      const result = results.find(
-                                        (r) => r.key === key
-                                      );
-                                      return (
-                                        <li key={key} className="text-sm">
-                                          <div className="flex items-center justify-between">
-                                            <span
-                                              className="truncate mr-2"
-                                              title={file.name}
-                                            >
-                                              {file.name}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                              {Math.round(file.size / 1024)} KB
-                                            </span>
-                                          </div>
-                                          {uploading && (
-                                            <div className="mt-1 h-2 w-full overflow-hidden rounded bg-muted">
-                                              <div
-                                                className="h-2 bg-primary transition-all"
-                                                style={{ width: `${pct}%` }}
-                                              />
-                                            </div>
-                                          )}
-                                          {result && (
-                                            <div
-                                              className={cn(
-                                                "mt-1 text-xs",
-                                                result.ok
-                                                  ? "text-green-600"
-                                                  : "text-red-600"
-                                              )}
-                                            >
-                                              {result.ok
-                                                ? "Uploaded successfully"
-                                                : `Failed: ${result.error}`}
-                                            </div>
-                                          )}
-                                        </li>
-                                      );
-                                    })}
-                                  </ul>
-                                </div>
-                              )}
-
-                              <div className="flex justify-end">
-                                <Button
-                                  onClick={handleUpload}
-                                  disabled={uploading || files.length === 0}
-                                >
-                                  {uploading ? (
-                                    <span className="inline-flex items-center">
-                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                                      Uploading…
-                                    </span>
-                                  ) : (
-                                    "Upload selected files"
-                                  )}
-                                </Button>
-                              </div>
                             </div>
                           )}
                         </motion.div>

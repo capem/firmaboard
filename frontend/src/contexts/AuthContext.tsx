@@ -22,6 +22,7 @@ const AuthContext = React.createContext<AuthContextType | null>(null);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = React.useState<User | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [onboardingRequired, setOnboardingRequired] = React.useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -68,12 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
-      const { data } = await api.get<{ isAuthenticated: boolean; user?: User }>(ENDPOINTS.auth.session);
+      const { data } = await api.get<{ isAuthenticated: boolean; user?: User; onboarding_required?: boolean }>(ENDPOINTS.auth.session);
       if (data.isAuthenticated && data.user) {
         setUser(data.user);
+        setOnboardingRequired(!!data.onboarding_required);
         return true;
       } else {
         setUser(null);
+        setOnboardingRequired(false);
         clearTokens();
         return false;
       }
@@ -81,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const authError = handleAuthError(error);
       
       setUser(null);
+      setOnboardingRequired(false);
       clearTokens();
       
       if (authError.code === 'INVALID_TOKEN') {
@@ -106,13 +110,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(data.user);
       storeTokens(data.tokens, rememberMe);
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('last_auth_provider', 'password');
+      
+      const onboardingRequired = !!(data as any).onboarding_required;
+      setOnboardingRequired(onboardingRequired);
       
       toast({
         title: "Welcome back!",
         description: "Successfully logged in"
       });
 
-      navigate('/dashboard');
+      navigate(onboardingRequired ? '/onboarding' : '/dashboard');
       return { success: true };
     } catch (error) {
       const authError = handleAuthError(error);
@@ -122,14 +131,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithGoogle = async ({ credential, rememberMe = false }: { credential: string; rememberMe?: boolean }): Promise<{ success: boolean; error?: AuthError }> => {
     try {
-      const { data } = await api.post<{ user: User; tokens: AuthTokens }>(
+      const { data } = await api.post<{ user: User; tokens: AuthTokens; onboarding_required: boolean }>(
         ENDPOINTS.auth.googleOAuth,
         { id_token: credential, rememberMe }
       );
       setUser(data.user);
       storeTokens(data.tokens, rememberMe);
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem('last_auth_provider', 'google');
+      setOnboardingRequired(!!data.onboarding_required);
       toast({ title: "Welcome!", description: "Signed in with Google" });
-      navigate('/dashboard');
+      const onboardingRequired = !!data.onboarding_required;
+      navigate(onboardingRequired ? '/onboarding?google=1' : '/dashboard');
       return { success: true };
     } catch (error) {
       const authError = handleAuthError(error);
@@ -149,7 +162,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     setUser(null);
+    setOnboardingRequired(false);
     clearTokens();
+    try {
+      localStorage.removeItem('last_auth_provider');
+      sessionStorage.removeItem('last_auth_provider');
+    } catch {}
     navigate('/login');
   };
 
@@ -162,13 +180,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       isAuthenticated: !!user,
       isLoading,
+      onboardingRequired,
       login,
       loginWithGoogle,
       logout,
       checkAuth,
       setUser,
+      setOnboardingRequired,
     }),
-    [user, isLoading]
+    [user, isLoading, onboardingRequired]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

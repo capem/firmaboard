@@ -303,11 +303,17 @@ def get_user_session(request):
             "email": "user@example.com",
             "first_name": "John",
             "last_name": "Doe",
-            "role": "owner"
-        }
+            "role": "owner",
+            "company": {"name": "Example Corp"}
+        },
+        "onboarding_required": false
     }
     ```
     """
+    company_payload = None
+    if getattr(request.user, 'company', None):
+        company_payload = { 'name': request.user.company.name }
+
     return Response({
         'isAuthenticated': True,
         'user': {
@@ -316,7 +322,9 @@ def get_user_session(request):
             'first_name': request.user.first_name,
             'last_name': request.user.last_name,
             'role': request.user.role,
-        }
+            'company': company_payload,
+        },
+        'onboarding_required': request.user.company is None,
     }, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
@@ -392,6 +400,11 @@ def google_oauth_login(request):
             logger.info(f"Created user via Google OAuth: {email} (ID: {user.id})")
 
         tokens = get_tokens_for_user(user, remember_me)
+
+        company_payload = None
+        if getattr(user, 'company', None):
+            company_payload = { 'name': user.company.name }
+
         return Response({
             'message': 'Login successful',
             'user': {
@@ -400,7 +413,9 @@ def google_oauth_login(request):
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'role': user.role,
+                'company': company_payload,
             },
+            'onboarding_required': user.company is None,
             'tokens': tokens,
         }, status=status.HTTP_200_OK)
 
@@ -410,6 +425,84 @@ def google_oauth_login(request):
     except Exception as e:
         logger.error(f"Unexpected error in Google OAuth login: {str(e)}")
         return Response({'error': 'Authentication failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+@schema(AutoSchema())
+def setup_company_profile(request):
+    """
+    Create a company and attach it to the authenticated user (used after Google OAuth first-time login).
+
+    Expected JSON body (similar to registration):
+    {
+        "first_name": "John",
+        "last_name": "Doe",
+        "phone_number": "+1234567890",
+        "address": "123 Main St",
+        "role": "owner",
+        "company": {
+            "name": "Example Corp",
+            "registration_number": "FB123456789",
+            "address": "123 Main St",
+            "contact_email": "user@example.com",
+            "contact_phone": "+1234567890",
+            "definitions": ["solar", "wind"],
+            "main_output": "solar",
+            "data_connection": "manual"
+        }
+    }
+    """
+    try:
+        with transaction.atomic():
+            user = request.user
+
+            # Validate company payload
+            company_data = request.data.get('company')
+            if not company_data:
+                return Response({'error': 'Company data is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+            required_company_fields = ['name', 'registration_number', 'address', 'contact_email', 'contact_phone']
+            missing_fields = [field for field in required_company_fields if not company_data.get(field)]
+            if missing_fields:
+                return Response({'error': f"Missing required company fields: {', '.join(missing_fields)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Create company and attach to user
+            company = Company.objects.create(
+                name=company_data.get('name'),
+                registration_number=company_data.get('registration_number'),
+                address=company_data.get('address'),
+                contact_email=company_data.get('contact_email'),
+                contact_phone=company_data.get('contact_phone'),
+                definitions=company_data.get('definitions', []),
+                main_output=company_data.get('main_output'),
+                data_connection=company_data.get('data_connection')
+            )
+
+            # Update user profile fields and link company
+            user.first_name = request.data.get('first_name', user.first_name)
+            user.last_name = request.data.get('last_name', user.last_name)
+            user.phone_number = request.data.get('phone_number', user.phone_number)
+            user.address = request.data.get('address', user.address)
+            role = request.data.get('role')
+            if role:
+                user.role = role
+            user.company = company
+            user.save()
+
+            return Response({
+                'message': 'Company profile setup completed successfully',
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'role': user.role,
+                    'company': { 'name': company.name },
+                }
+            }, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error during company profile setup: {str(e)}")
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -438,6 +531,9 @@ def complete_onboarding(request):
         user_id = request.data.get('user_id')
         user = User.objects.get(id=user_id)
         company = user.company
+
+        if company is None:
+            return Response({'error': 'Company does not exist for this user'}, status=status.HTTP_400_BAD_REQUEST)
 
         company.main_output = request.data.get('mainOutput')
         company.data_connection = request.data.get('dataConnection')
