@@ -33,7 +33,7 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithGoogle, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, onboardingRequired } = useAuth();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [formData, setFormData] = React.useState<LoginCredentials>({
     email: "",
@@ -113,14 +113,14 @@ const Login: React.FC = () => {
     }
   }, [formData.rememberMe, loginWithGoogle]);
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated (e.g., returning to /login)
   React.useEffect(() => {
-    if (isAuthenticated) {
-      const from = (location.state as any)?.from?.pathname || "/dashboard";
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, location]);
-
+    if (!isAuthenticated) return;
+    const from = (location.state as any)?.from?.pathname;
+    const provider = sessionStorage.getItem('last_auth_provider') || localStorage.getItem('last_auth_provider');
+    const target = onboardingRequired ? (provider === 'google' ? '/onboarding?google=1' : '/onboarding') : (from || '/dashboard');
+    navigate(target, { replace: true });
+  }, [isAuthenticated, onboardingRequired, navigate, location]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -215,7 +215,7 @@ const Login: React.FC = () => {
           { 
             theme: 'outline', 
             size: 'large', 
-            width: 350,
+            width: 300,
             type: 'standard',
             text: 'continue_with',
             shape: 'rectangular',

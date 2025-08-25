@@ -74,9 +74,13 @@ export const ENDPOINTS = {
         logout: '/core/logout/',
         session: '/core/session/',
         completeOnboarding: '/core/complete-onboarding/',
+        setupCompanyProfile: '/core/setup-company-profile/',
         googleOAuth: '/core/oauth/google/'
     },
     farms: {
         assets: '/farms/assets/'
+    },
+    dataImport: {
+        uploads: '/data-import/uploads/'
     }
 } as const; 

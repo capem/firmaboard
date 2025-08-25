@@ -8,6 +8,7 @@ import DataConnectionStep from './steps/DataConnectionStep';
 import { ArrowRight, ArrowLeft, Shield, Zap, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnboarding } from '@/hooks/use-onboarding';
+import { useSearchParams } from 'react-router-dom';
 
 const steps = [
   {
@@ -28,6 +29,8 @@ const steps = [
 ] as const;
 
 const Onboarding = () => {
+  const [searchParams] = useSearchParams();
+  const googleMode = searchParams.get('google') === '1';
   const {
     currentStep,
     formData,
@@ -35,7 +38,7 @@ const Onboarding = () => {
     handleNext,
     handleBack,
     handleSubmit,
-  } = useOnboarding();
+  } = useOnboarding({ initialStep: 1, isGoogleOAuth: googleMode });
 
   return (
     <section className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-background/95 px-4 py-8 md:py-12">
@@ -123,6 +126,7 @@ const Onboarding = () => {
                         setSelectedOptions={(options) =>
                           setFormData({ ...formData, companyDefinitions: options })
                         }
+                        hidePassword={googleMode}
                       />
                     )}
                     {currentStep === 2 && (
@@ -139,6 +143,10 @@ const Onboarding = () => {
                         setSelectedConnection={(connection) =>
                           setFormData({ ...formData, dataConnection: connection })
                         }
+                        dataType={formData.dataType}
+                        setDataType={(type) => setFormData({ ...formData, dataType: type })}
+                        files={formData.dataFiles}
+                        setFiles={(fs) => setFormData({ ...formData, dataFiles: fs })}
                       />
                     )}
                   </motion.div>

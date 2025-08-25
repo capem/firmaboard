@@ -1,65 +1,83 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { motion } from 'framer-motion';
-import { 
-  Database, 
-  Upload, 
-  Shield, 
+"use client";
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { motion } from "framer-motion";
+import {
+  Database,
+  Upload,
+  Shield,
   Check,
   FileJson,
   FileSpreadsheet,
-  Wifi
-} from 'lucide-react';
+  Wifi,
+} from "lucide-react";
+import UploadFilesStep from "./UploadFilesStep";
+import { DataImportTable } from '@/types/onboarding';
 
 interface DataConnectionStepProps {
   selectedConnection: string;
   setSelectedConnection: (connection: string) => void;
+  dataType?: DataImportTable;
+  setDataType: (type: DataImportTable) => void;
+  files: File[];
+  setFiles: (files: File[]) => void;
 }
 
 const connections = [
   {
-    id: 'live-data',
-    title: 'Connect Live Plant Data',
+    id: "live-data",
+    title: "Connect Live Plant Data",
     icon: Database,
-    description: 'Real-time connection to your SCADA, DCS, or historian systems',
+    description:
+      "Real-time connection to your SCADA, DCS, or historian systems",
     features: [
-      { icon: Wifi, text: 'Secure API integration' },
-      { icon: Shield, text: 'End-to-end encryption' },
-      { icon: Check, text: '99.9% uptime SLA' }
-    ]
+      { icon: Wifi, text: "Secure API integration" },
+      { icon: Shield, text: "End-to-end encryption" },
+      { icon: Check, text: "99.9% uptime SLA" },
+    ],
   },
   {
-    id: 'file-upload',
-    title: 'Upload Files',
+    id: "file-upload",
+    title: "Upload Files",
     icon: Upload,
-    description: 'Upload historical data files for analysis',
+    description: "Upload historical data files for analysis",
     features: [
-      { icon: FileJson, text: 'Support for CSV, JSON, XML' },
-      { icon: FileSpreadsheet, text: 'Excel workbook support' },
-      { icon: Shield, text: 'Automated data validation' }
-    ]
-  }
+      { icon: FileJson, text: "Support for CSV, JSON, XML" },
+      { icon: FileSpreadsheet, text: "Excel workbook support" },
+      { icon: Shield, text: "Automated data validation" },
+    ],
+  },
 ] as const;
 
-const DataConnectionStep = ({ selectedConnection, setSelectedConnection }: DataConnectionStepProps) => {
+const DataConnectionStep = ({
+  selectedConnection,
+  setSelectedConnection,
+  dataType,
+  setDataType,
+  files,
+  setFiles,
+}: DataConnectionStepProps) => {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col h-220 w-200 overflow-y-auto border p-1">
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">Connect Your Data</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Connect Your Data
+        </h2>
         <p className="text-muted-foreground">
-          Choose how you'd like to connect your renewable energy data to our platform.
+          Choose how you'd like to connect your renewable energy data to our
+          platform.
         </p>
       </div>
 
-      <RadioGroup 
-        value={selectedConnection} 
+      <RadioGroup
+        value={selectedConnection}
         onValueChange={setSelectedConnection}
-        className="grid gap-4 flex-1 my-8"
+        className="grid gap-4 flex-1 my-6 md:my-8"
       >
         {connections.map((connection) => {
-          const isSelected = selectedConnection === connection.title;
+          const isSelected = selectedConnection === connection.id;
 
           return (
             <motion.div
@@ -77,20 +95,26 @@ const DataConnectionStep = ({ selectedConnection, setSelectedConnection }: DataC
                   !isSelected && "border-muted"
                 )}
               >
-                <div className="flex items-start space-x-4">
-                  <div className={cn(
-                    "p-3 rounded-lg transition-colors",
-                    isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
-                  )}>
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      "p-3 rounded-lg transition-colors",
+                      isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    )}
+                  >
                     <connection.icon className="w-5 h-5" />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-medium leading-none">{connection.title}</h3>
+                      <h3 className="font-medium leading-none">
+                        {connection.title}
+                      </h3>
                       <RadioGroupItem
                         id={connection.id}
-                        value={connection.title}
+                        value={connection.id}
                         className="sr-only"
                       />
                     </div>
@@ -98,28 +122,58 @@ const DataConnectionStep = ({ selectedConnection, setSelectedConnection }: DataC
                       {connection.description}
                     </p>
 
-                    <motion.div 
+                    <motion.div
                       initial={false}
-                      animate={{ height: isSelected ? 'auto' : 0 }}
+                      animate={{ height: isSelected ? "auto" : 0 }}
                       className="overflow-hidden"
                     >
                       {isSelected && (
                         <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="mt-4 pt-4 border-t"
+                          className="mt-4 pt-4 border-t space-y-4"
                         >
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                             {connection.features.map((feature, index) => (
-                              <div 
+                              <div
                                 key={index}
                                 className="flex items-center space-x-2"
                               >
                                 <feature.icon className="w-4 h-4 text-primary shrink-0" />
-                                <span className="text-sm text-muted-foreground">{feature.text}</span>
+                                <span className="text-sm text-muted-foreground">
+                                  {feature.text}
+                                </span>
                               </div>
                             ))}
                           </div>
+
+                          {connection.id === "file-upload" && (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label className="text-sm font-medium">Data type to insert</Label>
+                                <RadioGroup value={dataType} onValueChange={(v) => setDataType(v as DataImportTable)} className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem id="dt-alarm" value="timeseries_alarm" />
+                                    <Label htmlFor="dt-alarm" className="text-sm">Alarms</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem id="dt-solar" value="timeseries_solarfarmtimeseries" />
+                                    <Label htmlFor="dt-solar" className="text-sm">Solar Farm Timeseries</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem id="dt-wind" value="timeseries_windfarmtimeseries" />
+                                    <Label htmlFor="dt-wind" className="text-sm">Wind Farm Timeseries</Label>
+                                  </div>
+                                </RadioGroup>
+                              </div>
+                              <UploadFilesStep
+                                files={files}
+                                setFiles={(fs) => {
+                                  setFiles(fs);
+                                }}
+                              />
+                            </div>
+                          )}
                         </motion.div>
                       )}
                     </motion.div>
@@ -131,14 +185,16 @@ const DataConnectionStep = ({ selectedConnection, setSelectedConnection }: DataC
         })}
       </RadioGroup>
 
-      <div className="rounded-lg border bg-muted/50 p-4">
-        <div className="flex items-center justify-center space-x-2">
+      <div className="rounded-lg border bg-muted/40 p-4">
+        <div className="flex items-center justify-center gap-2 text-center">
           <Shield className="w-4 h-4 text-primary" />
-          <span className="text-sm text-muted-foreground">Your data is protected by enterprise-grade security measures</span>
+          <span className="text-sm text-muted-foreground">
+            Your data is protected by enterprise-grade security measures
+          </span>
         </div>
       </div>
     </div>
   );
 };
 
-export default DataConnectionStep; 
+export default DataConnectionStep;

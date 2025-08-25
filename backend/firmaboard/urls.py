@@ -26,4 +26,5 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),  # REST Framework browsable API
     # path('api/timeseries/', include('timeseries.urls')),
     path('api/farms/', include('farms.urls')),  # Add farms URLs
+    path('api/data-import/', include('data_import.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

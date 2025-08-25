@@ -8,6 +8,9 @@ class Company(models.Model):
     address = models.TextField()
     contact_email = models.EmailField()
     contact_phone = models.CharField(max_length=20)
+    definitions = models.JSONField(default=list, blank=True, help_text="Company energy asset definitions")
+    main_output = models.CharField(max_length=100, blank=True, null=True, help_text="Primary output goal")
+    data_connection = models.CharField(max_length=100, blank=True, null=True, help_text="Data connection method")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

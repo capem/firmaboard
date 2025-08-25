@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, onboardingRequired } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -21,6 +21,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If authenticated but onboarding not completed, force onboarding
+  if (onboardingRequired) {
+    const provider = sessionStorage.getItem('last_auth_provider') || localStorage.getItem('last_auth_provider');
+    const path = provider === 'google' ? '/onboarding?google=1' : '/onboarding';
+    return <Navigate to={path} replace />;
   }
 
   return <>{children}</>;
