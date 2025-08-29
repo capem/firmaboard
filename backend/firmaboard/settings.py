@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 
 # Load environment variables from .env file
 load_dotenv()
@@ -198,6 +199,11 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Vite default development server
     "http://127.0.0.1:5173",
+]
+
+# Allow custom headers used by the frontend (e.g., tenant context)
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-tenant-slug",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

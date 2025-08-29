@@ -7,6 +7,7 @@ import { validateEmail, validatePassword } from '@/utils/auth';
 import { storeTokens } from '@/utils/auth';
 import { AuthTokens } from '@/types/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface UseOnboardingProps {
   initialStep?: number;
@@ -101,6 +102,7 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
   const navigate = useNavigate();
   const { toast } = useToast();
   const { setUser, user, setOnboardingRequired } = useAuth();
+  const { tenantPath } = useTenant();
   const [currentStep, setCurrentStep] = useState<number>(initialStep);
   const [formData, setFormData] = useState<OnboardingData>({
     email: '',
@@ -279,7 +281,7 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
           toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
         }
         toast({ title: 'Profile completed', description: 'Redirecting to dashboard...' });
-        setTimeout(() => navigate('/dashboard'), 800);
+        setTimeout(() => navigate(tenantPath('/dashboard')), 800);
         return;
       }
 
@@ -312,7 +314,7 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
         
         // Short delay to allow the toast to be seen
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate(tenantPath('/dashboard'));
         }, 1000);
       } else {
         throw new Error('No authentication tokens received');
@@ -330,7 +332,7 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
         });
         // Redirect to login after a short delay
         setTimeout(() => {
-          navigate('/login');
+          navigate(tenantPath('/login'));
         }, 2000);
       } else {
         toast({

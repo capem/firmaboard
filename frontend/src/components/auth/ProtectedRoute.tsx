@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,6 +11,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading, onboardingRequired } = useAuth();
   const location = useLocation();
+  const { tenantPath } = useTenant();
 
   if (isLoading) {
     return (
@@ -20,14 +22,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={tenantPath('/login')} state={{ from: location }} replace />;
   }
 
   // If authenticated but onboarding not completed, force onboarding
   if (onboardingRequired) {
     const provider = sessionStorage.getItem('last_auth_provider') || localStorage.getItem('last_auth_provider');
     const path = provider === 'google' ? '/onboarding?google=1' : '/onboarding';
-    return <Navigate to={path} replace />;
+    return <Navigate to={tenantPath(path)} replace />;
   }
 
   return <>{children}</>;

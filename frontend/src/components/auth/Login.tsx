@@ -27,6 +27,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { LoginCredentials, LoginFormErrors } from "@/types/auth";
 import { validateEmail, validatePassword } from "@/utils/auth";
+import { useTenant } from "@/contexts/TenantContext";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 
@@ -34,6 +35,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, loginWithGoogle, isAuthenticated, onboardingRequired } = useAuth();
+  const { tenantPath } = useTenant();
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [formData, setFormData] = React.useState<LoginCredentials>({
     email: "",
@@ -42,6 +44,9 @@ const Login: React.FC = () => {
   });
   const [errors, setErrors] = React.useState<LoginFormErrors>({});
   const [attempts, setAttempts] = React.useState(0);
+  // Avoid double-render issues in React.StrictMode and ensure we render into the correct element
+  const gsiRenderedRef = React.useRef(false);
+  const buttonDivRef = React.useRef<HTMLDivElement | null>(null);
 
   const handleGoogleSignInClick = React.useCallback(() => {
     console.log("Google sign-in button clicked");
@@ -118,9 +123,9 @@ const Login: React.FC = () => {
     if (!isAuthenticated) return;
     const from = (location.state as any)?.from?.pathname;
     const provider = sessionStorage.getItem('last_auth_provider') || localStorage.getItem('last_auth_provider');
-    const target = onboardingRequired ? (provider === 'google' ? '/onboarding?google=1' : '/onboarding') : (from || '/dashboard');
-    navigate(target, { replace: true });
-  }, [isAuthenticated, onboardingRequired, navigate, location]);
+    const targetPath = onboardingRequired ? (provider === 'google' ? '/onboarding?google=1' : '/onboarding') : (from || '/dashboard');
+    navigate(tenantPath(targetPath), { replace: true });
+  }, [isAuthenticated, onboardingRequired, navigate, location, tenantPath]);
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
@@ -178,58 +183,74 @@ const Login: React.FC = () => {
   };
 
   React.useEffect(() => {
-    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as
-      | string
-      | undefined;
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
     if (!clientId) return;
 
-    // Load Google Identity Services script
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
+    const renderGsi = () => {
       // @ts-ignore - window.google declared in global.d.ts
-      if (
-        window.google &&
-        window.google.accounts &&
-        window.google.accounts.id
-      ) {
-        // @ts-ignore
-        window.google.accounts.id.initialize({
-          client_id: clientId,
-          callback: (response: any) => {
-            const credential = response?.credential as string | undefined;
-            if (credential) {
-              loginWithGoogle({ credential, rememberMe: formData.rememberMe });
-            }
-          },
-          ux_mode: "popup",
-          auto_select: true,
-          cancel_on_tap_outside: true,
-          context: "signin",
-        });
-        // @ts-ignore
-        window.google.accounts.id.renderButton(
-          document.getElementById('googleSignInDiv'),
-          { 
-            theme: 'outline', 
-            size: 'large', 
+      if (!(window.google && window.google.accounts && window.google.accounts.id)) return;
+
+      // Initialize once per mount
+      // @ts-ignore
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: any) => {
+          const credential = response?.credential as string | undefined;
+          if (credential) {
+            loginWithGoogle({ credential, rememberMe: formData.rememberMe });
+          }
+        },
+        ux_mode: "popup",
+        auto_select: true,
+        cancel_on_tap_outside: true,
+        context: "signin",
+      });
+
+      // Render button into the ref’d container exactly once
+      if (!gsiRenderedRef.current && buttonDivRef.current) {
+        try {
+          // @ts-ignore
+          window.google.accounts.id.renderButton(buttonDivRef.current, {
+            theme: 'outline',
+            size: 'large',
             width: 300,
             type: 'standard',
             text: 'continue_with',
             shape: 'rectangular',
             logo_alignment: 'left'
-          }
-        );
-        // Trigger One Tap prompt
-        // @ts-ignore
-        window.google.accounts.id.prompt();
+          });
+          gsiRenderedRef.current = true;
+        } catch (e) {
+          console.warn('Failed to render Google button:', e);
+        }
       }
+
+      // @ts-ignore
+      window.google.accounts.id.prompt();
     };
-    document.body.appendChild(script);
+
+    // If script already present, just render
+    // @ts-ignore
+    if (window.google && window.google.accounts && window.google.accounts.id) {
+      renderGsi();
+      return;
+    }
+
+    // Load Google Identity Services script once
+    const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]') as HTMLScriptElement | null;
+    if (existingScript) {
+      existingScript.addEventListener('load', renderGsi, { once: true });
+    } else {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.addEventListener('load', renderGsi, { once: true });
+      document.body.appendChild(script);
+    }
+
     return () => {
-      document.body.removeChild(script);
+      gsiRenderedRef.current = false;
     };
   }, [loginWithGoogle, formData.rememberMe]);
 
@@ -461,12 +482,12 @@ const Login: React.FC = () => {
                     </span>
                   </div>
 
-                  <div id="googleSignInDiv" className="flex justify-center" />
+                  <div id="googleSignInDiv" ref={buttonDivRef} className="flex justify-center" />
 
                   <p className="text-sm text-center text-muted-foreground">
                     New to Firmaboard?{" "}
                     <Link
-                      to="/onboarding"
+                      to={tenantPath('/onboarding')}
                       className="font-medium text-primary hover:underline"
                     >
                       Create an account

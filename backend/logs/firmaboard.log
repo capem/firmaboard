@@ -120,3 +120,110 @@ INFO 2025-02-24 19:25:27,923 basehttp 29800 33928 "GET /admin/core/customuser/1/
 INFO 2025-02-24 19:25:28,166 basehttp 29800 33928 "GET /admin/jsi18n/ HTTP/1.1" 200 3342
 WARNING 2025-02-24 19:25:34,077 log 29800 18656 Unauthorized: /api/core/login/
 WARNING 2025-02-24 19:25:34,078 basehttp 29800 18656 "POST /api/core/login/ HTTP/1.1" 401 31
+INFO 2025-08-27 10:27:46,906 autoreload 15660 17464 Watching for file changes with StatReloader
+INFO 2025-08-27 15:14:34,140 autoreload 1312 16896 Watching for file changes with StatReloader
+INFO 2025-08-27 15:43:09,709 basehttp 1312 13928 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-27 15:43:10,058 views 1312 7140 Attempting to register user with data: {'email': 'name06@gmail.com', 'first_name': 'AZ.', 'last_name': 'ZAUADGHIRI', 'phone_number': '+212642039588', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'role': 'manager', 'company': {'name': 'nova', 'registration_number': 'FB1756305789364', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'contact_email': 'name06@gmail.com', 'contact_phone': '+212642039588', 'definitions': ['wind'], 'main_output': "Not sure yet. I'm open!", 'data_connection': 'file-upload'}}
+INFO 2025-08-27 15:43:10,222 views 1312 7140 Created company: nova (ID: 3)
+INFO 2025-08-27 15:43:14,243 views 1312 20576 Attempting to register user with data: {'email': 'name06@gmail.com', 'first_name': 'AZ.', 'last_name': 'ZAUADGHIRI', 'phone_number': '+212642039588', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'role': 'manager', 'company': {'name': 'nova', 'registration_number': 'FB1756305794211', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'contact_email': 'name06@gmail.com', 'contact_phone': '+212642039588', 'definitions': ['wind'], 'main_output': "Not sure yet. I'm open!", 'data_connection': 'file-upload'}}
+INFO 2025-08-27 15:43:14,667 views 1312 20576 Created company: nova (ID: 4)
+INFO 2025-08-27 15:43:14,896 views 1312 7140 Created user: name06@gmail.com (ID: 2)
+INFO 2025-08-27 15:43:15,012 basehttp 1312 7140 "POST /api/core/register/ HTTP/1.1" 201 634
+INFO 2025-08-27 15:43:15,090 basehttp 1312 13928 "OPTIONS /api/data-import/uploads/ HTTP/1.1" 200 0
+INFO 2025-08-27 15:43:15,560 basehttp 1312 7140 "POST /api/data-import/uploads/ HTTP/1.1" 201 33737
+INFO 2025-08-27 15:43:17,414 basehttp 1312 17968 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-27 15:43:17,415 basehttp 1312 13928 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-27 15:43:17,934 basehttp 1312 7140 "GET /api/farms/assets/ HTTP/1.1" 200 443
+INFO 2025-08-27 15:43:18,127 basehttp 1312 7140 "GET /api/farms/assets/ HTTP/1.1" 200 443
+ERROR 2025-08-27 15:43:18,974 views 1312 20576 Unexpected error during registration: ERREUR:  la valeur d'une clé dupliquée rompt la contrainte unique « core_customuser_username_key »
+DETAIL:  La clé « (username)=(name06@gmail.com) » existe déjà.
+
+WARNING 2025-08-27 15:43:18,974 log 1312 20576 Bad Request: /api/core/register/
+WARNING 2025-08-27 15:43:18,975 basehttp 1312 20576 "POST /api/core/register/ HTTP/1.1" 400 185
+INFO 2025-08-29 10:36:32,769 autoreload 17292 19140 Watching for file changes with StatReloader
+INFO 2025-08-29 10:37:16,467 autoreload 9548 11356 Watching for file changes with StatReloader
+INFO 2025-08-29 10:39:58,629 basehttp 9548 22944 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-08-29 10:39:58,631 basehttp 9548 6416 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+WARNING 2025-08-29 10:39:59,157 log 9548 17300 Unauthorized: /api/core/session/
+WARNING 2025-08-29 10:39:59,183 basehttp 9548 17300 "GET /api/core/session/ HTTP/1.1" 401 183
+WARNING 2025-08-29 10:39:59,194 log 9548 17300 Unauthorized: /api/core/session/
+WARNING 2025-08-29 10:39:59,206 basehttp 9548 17300 "GET /api/core/session/ HTTP/1.1" 401 183
+INFO 2025-08-29 14:42:52,062 autoreload 16908 7528 Watching for file changes with StatReloader
+INFO 2025-08-29 15:33:30,193 autoreload 16908 7528 D:\firmaboard\firmaboard\backend\data_import\views.py changed, reloading.
+INFO 2025-08-29 15:33:33,009 autoreload 4460 368 Watching for file changes with StatReloader
+INFO 2025-08-29 15:36:37,442 autoreload 13808 6004 Watching for file changes with StatReloader
+INFO 2025-08-29 16:05:02,416 basehttp 13808 5672 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:05:42,466 basehttp 13808 5672 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:05:52,716 basehttp 13808 5672 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:06:55,412 basehttp 13808 5672 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:10:26,671 autoreload 13808 6004 D:\firmaboard\firmaboard\backend\firmaboard\settings.py changed, reloading.
+INFO 2025-08-29 16:10:30,936 autoreload 3604 10184 Watching for file changes with StatReloader
+INFO 2025-08-29 16:11:03,712 basehttp 3604 16668 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:04,062 views 3604 16788 Attempting to register user with data: {'email': 'oazdine06@gmail.com', 'first_name': 'AZ.EDDINE', 'last_name': 'ZAHIRE ELOUADGHIRI', 'phone_number': '+212642039503', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'role': 'manager', 'company': {'name': 'TRAC', 'registration_number': 'FB1756480263352', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'contact_email': 'oazdine06@gmail.com', 'contact_phone': '+212642039503', 'definitions': ['storage'], 'main_output': "Not sure yet. I'm open!", 'data_connection': 'file-upload'}}
+INFO 2025-08-29 16:11:04,353 views 3604 16788 Created company: TRAC (ID: 3)
+INFO 2025-08-29 16:11:11,610 views 3604 16788 Created user: oazdine06@gmail.com (ID: 2)
+INFO 2025-08-29 16:11:11,869 basehttp 3604 16788 "POST /api/core/register/ HTTP/1.1" 201 651
+INFO 2025-08-29 16:11:11,990 basehttp 3604 16668 "OPTIONS /api/data-import/uploads/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:12,287 basehttp 3604 16668 "OPTIONS /api/core/register/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:12,882 basehttp 3604 16788 "POST /api/data-import/uploads/ HTTP/1.1" 201 33737
+INFO 2025-08-29 16:11:12,944 views 3604 8008 Attempting to register user with data: {'email': 'oazdine06@gmail.com', 'first_name': 'AZ.EDDINE', 'last_name': 'ZAHIRE ELOUADGHIRI', 'phone_number': '+212642039503', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'role': 'manager', 'company': {'name': 'TRAC', 'registration_number': 'FB1756480272273', 'address': '6 AV OTMAN IBN AFFANE APPT 10 DK FES', 'contact_email': 'oazdine06@gmail.com', 'contact_phone': '+212642039503', 'definitions': ['storage'], 'main_output': "Not sure yet. I'm open!", 'data_connection': 'file-upload'}}
+ERROR 2025-08-29 16:11:12,980 views 3604 8008 Validation error during registration: A user with this email already exists
+WARNING 2025-08-29 16:11:12,991 log 3604 8008 Bad Request: /api/core/register/
+WARNING 2025-08-29 16:11:12,996 basehttp 3604 8008 "POST /api/core/register/ HTTP/1.1" 400 49
+INFO 2025-08-29 16:11:14,671 basehttp 3604 16668 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:14,723 basehttp 3604 16668 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:15,069 basehttp 3604 16788 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:11:15,503 basehttp 3604 8008 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:11:15,742 basehttp 3604 16668 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:15,744 basehttp 3604 18224 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:16,292 basehttp 3604 16788 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:11:16,473 basehttp 3604 8008 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:11:26,987 basehttp 3604 18224 "OPTIONS /api/core/logout/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:27,207 views 3604 8008 User 2 successfully logged out
+INFO 2025-08-29 16:11:27,208 basehttp 3604 8008 "POST /api/core/logout/ HTTP/1.1" 200 37
+INFO 2025-08-29 16:11:47,865 basehttp 3604 18224 "OPTIONS /api/core/login/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:11:54,049 basehttp 3604 8008 "POST /api/core/login/ HTTP/1.1" 200 644
+INFO 2025-08-29 16:15:01,273 basehttp 3604 18224 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:15:01,280 basehttp 3604 18224 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:15:01,423 basehttp 3604 8008 "GET /api/core/session/ HTTP/1.1" 200 199
+INFO 2025-08-29 16:15:01,442 basehttp 3604 16788 "GET /api/core/session/ HTTP/1.1" 200 199
+INFO 2025-08-29 16:15:12,505 basehttp 3604 16668 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:15:12,506 basehttp 3604 18224 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:15:12,997 basehttp 3604 8008 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:15:13,057 basehttp 3604 16788 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:20:02,572 basehttp 3604 18224 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:20:02,582 basehttp 3604 18224 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:20:02,760 basehttp 3604 16788 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:20:02,817 basehttp 3604 8008 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:21:27,217 autoreload 1460 17860 Watching for file changes with StatReloader
+INFO 2025-08-29 16:21:44,128 basehttp 1460 4672 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:21:44,128 basehttp 1460 12484 "OPTIONS /api/core/session/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:21:44,876 basehttp 1460 5296 "GET /api/core/session/ HTTP/1.1" 200 199
+INFO 2025-08-29 16:21:44,904 basehttp 1460 21228 "GET /api/core/session/ HTTP/1.1" 200 199
+INFO 2025-08-29 16:21:45,160 basehttp 1460 4672 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:21:45,164 basehttp 1460 12484 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:21:45,639 basehttp 1460 5296 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:21:45,664 basehttp 1460 21228 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:22:16,338 basehttp 1460 12484 "OPTIONS /api/core/logout/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:22:16,647 views 1460 21228 User 2 successfully logged out
+INFO 2025-08-29 16:22:16,650 basehttp 1460 21228 "POST /api/core/logout/ HTTP/1.1" 200 37
+INFO 2025-08-29 16:22:28,606 basehttp 1460 12484 "OPTIONS /api/core/oauth/google/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:22:28,977 views 1460 21228 Created user via Google OAuth: ouadghiriazdine@gmail.com (ID: 3)
+INFO 2025-08-29 16:22:28,983 basehttp 1460 21228 "POST /api/core/oauth/google/ HTTP/1.1" 200 679
+INFO 2025-08-29 16:26:16,061 basehttp 1460 15696 "OPTIONS /api/core/setup-company-profile/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:26:17,217 basehttp 1460 20340 "POST /api/core/setup-company-profile/ HTTP/1.1" 200 201
+INFO 2025-08-29 16:26:17,242 basehttp 1460 15696 "OPTIONS /api/data-import/uploads/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:26:17,912 basehttp 1460 20340 "POST /api/data-import/uploads/ HTTP/1.1" 201 33737
+INFO 2025-08-29 16:26:19,276 basehttp 1460 15696 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:26:19,283 basehttp 1460 6852 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:26:19,694 basehttp 1460 2548 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:26:19,717 basehttp 1460 20340 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:26:48,425 basehttp 1460 6852 "OPTIONS /api/core/logout/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:26:48,655 views 1460 20340 User 3 successfully logged out
+INFO 2025-08-29 16:26:48,657 basehttp 1460 20340 "POST /api/core/logout/ HTTP/1.1" 200 37
+INFO 2025-08-29 16:27:20,264 basehttp 1460 6852 "OPTIONS /api/core/oauth/google/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:27:20,682 basehttp 1460 20340 "POST /api/core/oauth/google/ HTTP/1.1" 200 694
+INFO 2025-08-29 16:27:21,045 basehttp 1460 6852 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:27:21,046 basehttp 1460 15696 "OPTIONS /api/farms/assets/ HTTP/1.1" 200 0
+INFO 2025-08-29 16:27:21,561 basehttp 1460 2548 "GET /api/farms/assets/ HTTP/1.1" 200 2
+INFO 2025-08-29 16:27:21,587 basehttp 1460 20340 "GET /api/farms/assets/ HTTP/1.1" 200 2

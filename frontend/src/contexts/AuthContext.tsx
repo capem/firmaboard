@@ -16,6 +16,7 @@ import {
   getStoredToken,
   getStoredRefreshToken
 } from '@/utils/auth';
+import { useTenant } from '@/contexts/TenantContext';
 
 const AuthContext = React.createContext<AuthContextType | null>(null);
 
@@ -25,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [onboardingRequired, setOnboardingRequired] = React.useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { tenantPath } = useTenant();
 
   const handleAuthError = (error: unknown): AuthError => {
     const axiosError = error as AxiosError;
@@ -121,7 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Successfully logged in"
       });
 
-      navigate(onboardingRequired ? '/onboarding' : '/dashboard');
+      navigate(onboardingRequired ? tenantPath('/onboarding') : tenantPath('/dashboard'));
       return { success: true };
     } catch (error) {
       const authError = handleAuthError(error);
@@ -142,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setOnboardingRequired(!!data.onboarding_required);
       toast({ title: "Welcome!", description: "Signed in with Google" });
       const onboardingRequired = !!data.onboarding_required;
-      navigate(onboardingRequired ? '/onboarding?google=1' : '/dashboard');
+      navigate(onboardingRequired ? tenantPath('/onboarding?google=1') : tenantPath('/dashboard'));
       return { success: true };
     } catch (error) {
       const authError = handleAuthError(error);
@@ -168,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.removeItem('last_auth_provider');
       sessionStorage.removeItem('last_auth_provider');
     } catch {}
-    navigate('/login');
+    navigate(tenantPath('/login'));
   };
 
   React.useEffect(() => {

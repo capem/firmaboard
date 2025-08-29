@@ -509,28 +509,22 @@ def setup_company_profile(request):
 @schema(AutoSchema())
 def complete_onboarding(request):
     """
-    Complete the onboarding process by updating user and company preferences.
-    
+    Complete the onboarding process by updating the authenticated user's company preferences.
+
     Example request:
-    ```json
     {
-        "user_id": 1,
         "mainOutput": "crops",
         "dataConnection": "manual"
     }
-    ```
-    
+
     Returns:
-    ```json
     {
         "message": "Onboarding completed successfully"
     }
-    ```
     """
     try:
-        user_id = request.data.get('user_id')
-        user = User.objects.get(id=user_id)
-        company = user.company
+        user = request.user
+        company = getattr(user, 'company', None)
 
         if company is None:
             return Response({'error': 'Company does not exist for this user'}, status=status.HTTP_400_BAD_REQUEST)
@@ -539,14 +533,6 @@ def complete_onboarding(request):
         company.data_connection = request.data.get('dataConnection')
         company.save()
 
-        return Response({
-            'message': 'Onboarding completed successfully'
-        }, status=status.HTTP_200_OK)
-    except User.DoesNotExist:
-        return Response({
-            'error': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+        return Response({'message': 'Onboarding completed successfully'}, status=status.HTTP_200_OK)
     except Exception as e:
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

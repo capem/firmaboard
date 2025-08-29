@@ -49,6 +49,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/AuthContext"
+import { useTenant } from "@/contexts/TenantContext"
 
 const navMainData = [
   {
@@ -281,8 +282,21 @@ const navSecondaryData = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
+  const { tenantPath } = useTenant()
 
   if (!user) return null
+
+  const mainItems = React.useMemo(() => (
+    navMainData.map(item => ({
+      ...item,
+      url: tenantPath(item.url),
+      items: item.items?.map(sub => ({ ...sub, url: tenantPath(sub.url) }))
+    }))
+  ), [tenantPath])
+
+  const secondaryItems = React.useMemo(() => (
+    navSecondaryData.map(item => ({ ...item, url: tenantPath(item.url) }))
+  ), [tenantPath])
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -304,8 +318,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navMainData} />
-        <NavSecondary items={navSecondaryData} className="mt-auto" />
+        <NavMain items={mainItems} />
+        <NavSecondary items={secondaryItems} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={{

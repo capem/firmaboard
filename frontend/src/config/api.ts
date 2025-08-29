@@ -19,6 +19,12 @@ const API_CONFIG = {
 const environment = import.meta.env.MODE || 'development';
 const config = API_CONFIG[environment as keyof typeof API_CONFIG];
 
+// Current tenant slug for multi-tenant header propagation
+let CURRENT_TENANT_SLUG: string | null = null;
+export const setApiTenant = (slug: string | null) => {
+    CURRENT_TENANT_SLUG = slug || null;
+};
+
 // Create axios instance
 export const api = axios.create({
     baseURL: `${config.baseURL}${config.apiPrefix}`,
@@ -28,14 +34,17 @@ export const api = axios.create({
     withCredentials: true,
 });
 
-// Add request interceptor for auth token
+// Add request interceptor for auth token and tenant header
 api.interceptors.request.use((config) => {
     // Check sessionStorage first (for non-remember-me sessions)
     const sessionToken = sessionStorage.getItem('auth_token');
     const token = sessionToken || localStorage.getItem('auth_token');
     
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        (config.headers as any).Authorization = `Bearer ${token}`;
+    }
+    if (CURRENT_TENANT_SLUG) {
+        (config.headers as any)['X-Tenant-Slug'] = CURRENT_TENANT_SLUG;
     }
     return config;
 });

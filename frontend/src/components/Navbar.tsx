@@ -463,7 +463,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent>
+          <SheetContent aria-describedby={undefined} aria-label="Mobile navigation">
             <div className="flex flex-col gap-6 mt-6">
               <Link
                 to="/"
