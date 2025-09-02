@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils';
 import CompanyDefinitionStep from './steps/CompanyDefinitionStep';
 import MainOutputStep from './steps/MainOutputStep';
 import DataConnectionStep from './steps/DataConnectionStep';
-import { ArrowRight, ArrowLeft, Shield, Zap, Building2 } from 'lucide-react';
+import StageSetupStep from './steps/StageSetupStep';
+import { ArrowRight, ArrowLeft, Shield, Zap, Building2, ListPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useSearchParams } from 'react-router-dom';
@@ -20,6 +21,11 @@ const steps = [
     icon: Zap,
     title: "Output Goals",
     description: "Define your energy objectives",
+  },
+  {
+    icon: ListPlus,
+    title: "Asset Setup",
+    description: "Add Windfarm or Solarfarm assets",
   },
   {
     icon: Shield,
@@ -86,7 +92,7 @@ const Onboarding = () => {
                 <motion.div
                   className="h-full bg-primary"
                   initial={{ width: 0 }}
-                  animate={{ width: `${((currentStep - 1) / 2) * 100}%` }}
+animate={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                   transition={{ duration: 0.3 }}
                 />
               </div>
@@ -138,6 +144,12 @@ const Onboarding = () => {
                       />
                     )}
                     {currentStep === 3 && (
+                      <StageSetupStep
+                        stages={formData.stages}
+                        setStages={(stages) => setFormData({ ...formData, stages })}
+                      />
+                    )}
+                    {currentStep === 4 && (
                       <DataConnectionStep
                         selectedConnection={formData.dataConnection}
                         setSelectedConnection={(connection) =>
@@ -169,7 +181,7 @@ const Onboarding = () => {
                 </Button>
               </div>
 
-              {currentStep < 3 ? (
+              {currentStep < steps.length ? (
                 <Button onClick={handleNext} className="group ml-auto">
                   Next
                   <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

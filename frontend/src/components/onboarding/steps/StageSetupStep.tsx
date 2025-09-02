@@ -1,0 +1,180 @@
+import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
+import { Stage, StageType } from '@/types/onboarding';
+import { cn } from '@/lib/utils';
+import { Plus, Trash2, CheckCircle2 } from 'lucide-react';
+
+interface StageSetupStepProps {
+  stages: Stage[];
+  setStages: (stages: Stage[]) => void;
+}
+
+const windfarmFields: { key: string; label: string; type: 'text' | 'number' }[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'location', label: 'Location', type: 'text' },
+  { key: 'latitude', label: 'Latitude', type: 'number' },
+  { key: 'longitude', label: 'Longitude', type: 'number' },
+  { key: 'total_area', label: 'Total Area (ha)', type: 'number' },
+  { key: 'nominal_power', label: 'Nominal Power (MW)', type: 'number' },
+  { key: 'number_of_turbines', label: 'Number of Turbines', type: 'number' },
+];
+
+const solarfarmFields: { key: string; label: string; type: 'text' | 'number' | 'boolean' }[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'location', label: 'Location', type: 'text' },
+  { key: 'latitude', label: 'Latitude', type: 'number' },
+  { key: 'longitude', label: 'Longitude', type: 'number' },
+  { key: 'total_area', label: 'Total Area (ha)', type: 'number' },
+  { key: 'nominal_power', label: 'Nominal Power (MW)', type: 'number' },
+  { key: 'number_of_panels', label: 'Number of Panels', type: 'number' },
+  // boolean field handled with Checkbox
+];
+
+const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages }) => {
+  const addStage = () => {
+    const newStage: Stage = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      type: 'windfarm',
+      data: {},
+      saved: false,
+    };
+    setStages([...(stages || []), newStage]);
+  };
+
+  const updateStageType = (id: string, type: StageType) => {
+    setStages(
+      (stages || []).map((s) => (s.id === id ? { ...s, type, saved: false } : s))
+    );
+  };
+
+  const updateStageField = (id: string, key: string, value: any) => {
+    setStages(
+      (stages || []).map((s) =>
+        s.id === id ? { ...s, data: { ...s.data, [key]: value }, saved: false } : s
+      )
+    );
+  };
+
+  const toggleSolarTracking = (id: string, checked: boolean) => {
+    updateStageField(id, 'tracking_system', checked);
+  };
+
+  const removeStage = (id: string) => {
+    setStages((stages || []).filter((s) => s.id !== id));
+  };
+
+  const markSaved = (id: string) => {
+    setStages((stages || []).map((s) => (s.id === id ? { ...s, saved: true } : s)));
+  };
+
+  return (
+    <div className="h-full flex flex-col gap-4 overflow-y-auto px-1">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Configure Assets</h2>
+          <p className="text-muted-foreground">Add one or more assets and choose the data type.</p>
+        </div>
+        <Button onClick={addStage} className="gap-2">
+          <Plus className="w-4 h-4" />
+          ADD ASSET
+        </Button>
+      </div>
+
+      <div className="flex-1 space-y-3 md:space-y-4">
+        {(stages || []).length === 0 && (
+          <Card className="p-6 text-center text-sm text-muted-foreground">
+            No assets added yet. Click "ADD ASSET" to begin.
+          </Card>
+        )}
+
+        {(stages || []).map((stage, idx) => {
+          const isSolar = stage.type === 'solarfarm';
+          return (
+            <Card key={stage.id} className="p-4 md:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium">Asset {idx + 1}</h3>
+                  {stage.saved && (
+                    <Badge variant="secondary" className="inline-flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-600" /> Saved
+                    </Badge>
+                  )}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => removeStage(stage.id)}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="mt-3 grid gap-4">
+                <div className="space-y-2">
+                  <Label>Data Type</Label>
+                  <RadioGroup
+                    value={stage.type}
+                    onValueChange={(val) => updateStageType(stage.id, val as StageType)}
+                    className="grid grid-cols-2 gap-3 md:max-w-sm"
+                  >
+                    <div className={cn('flex items-center space-x-2 rounded-lg border p-3', stage.type === 'windfarm' && 'border-primary') }>
+                      <RadioGroupItem id={`${stage.id}-wind`} value="windfarm" />
+                      <Label htmlFor={`${stage.id}-wind`} className="text-sm">Windfarm</Label>
+                    </div>
+                    <div className={cn('flex items-center space-x-2 rounded-lg border p-3', stage.type === 'solarfarm' && 'border-primary') }>
+                      <RadioGroupItem id={`${stage.id}-solar`} value="solarfarm" />
+                      <Label htmlFor={`${stage.id}-solar`} className="text-sm">Solarfarm</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {(isSolar ? solarfarmFields : windfarmFields).map((f) => (
+                    <div key={`${stage.id}-${f.key}`} className="space-y-1.5">
+                      <Label htmlFor={`${stage.id}-${f.key}`} className="text-sm">{f.label}</Label>
+                      <Input
+                        id={`${stage.id}-${f.key}`}
+                        type={f.type === 'number' ? 'number' : 'text'}
+                        value={stage.data?.[f.key] ?? ''}
+                        onChange={(e) => updateStageField(stage.id, f.key, f.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)}
+                      />
+                    </div>
+                  ))}
+
+                  {isSolar && (
+                    <div className="space-y-1.5">
+                      <Label htmlFor={`${stage.id}-tracking_system`} className="text-sm">Tracking System</Label>
+                      <div className="flex items-center gap-2 h-10">
+                        <Checkbox
+                          id={`${stage.id}-tracking_system`}
+                          checked={!!stage.data?.tracking_system}
+                          onCheckedChange={(v) => toggleSolarTracking(stage.id, Boolean(v))}
+                        />
+                        <span className="text-sm text-muted-foreground">Enable tracking</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-1">
+                  <Button variant="secondary" onClick={() => markSaved(stage.id)} className="gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Save Asset
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="rounded-lg border bg-muted/40 p-4 text-center text-sm text-muted-foreground">
+        You can proceed to Data Integration after adding at least one asset.
+      </div>
+    </div>
+  );
+};
+
+export default StageSetupStep;
+

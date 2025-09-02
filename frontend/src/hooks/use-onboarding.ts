@@ -115,6 +115,7 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
     companyName: '',
     companyDefinitions: [],
     mainOutput: '',
+    stages: [],
     dataConnection: '',
     dataType: undefined,
     dataFiles: [],
@@ -158,6 +159,16 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
         }
         return true;
       case 3:
+        if (!formData.stages || formData.stages.length === 0) {
+          toast({
+            title: "Please add at least one asset",
+            description: "Click 'ADD ASSET' and configure a Windfarm or Solarfarm asset.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
+      case 4:
         if (!formData.dataConnection) {
           toast({
             title: "Please select a data connection",
