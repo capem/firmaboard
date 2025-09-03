@@ -87,7 +87,9 @@ export const ENDPOINTS = {
         googleOAuth: '/core/oauth/google/'
     },
     farms: {
-        assets: '/farms/assets/'
+        assets: '/farms/assets/',
+        windModels: '/farms/models/wind-turbines/',
+        solarModels: '/farms/models/solar-panels/'
     },
     dataImport: {
         uploads: '/data-import/uploads/'

@@ -8,7 +8,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Badge } from '@/components/ui/badge';
 import { Stage, StageType } from '@/types/onboarding';
 import { cn } from '@/lib/utils';
-import { Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Search, X, Loader2 } from 'lucide-react';
+import { api, ENDPOINTS } from '@/config/api';
 
 interface StageSetupStepProps {
   stages: Stage[];
@@ -130,6 +131,34 @@ const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages }) =>
                   </RadioGroup>
                 </div>
 
+                {/* FARM MODEL selector */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">FARM MODEL</Label>
+                  <FarmModelSelector
+                    stage={stage}
+                    onSelect={(id: number | null, label: string) => {
+                      if (stage.type === 'solarfarm') {
+                        updateStageField(stage.id, 'panel_model_id', id);
+                        updateStageField(stage.id, 'panel_model_label', label);
+                        updateStageField(stage.id, 'custom_model', id === null);
+                      } else {
+                        updateStageField(stage.id, 'turbine_model_id', id);
+                        updateStageField(stage.id, 'turbine_model_label', label);
+                        updateStageField(stage.id, 'custom_model', id === null);
+                      }
+                    }}
+                    onClear={() => {
+                      if (stage.type === 'solarfarm') {
+                        updateStageField(stage.id, 'panel_model_id', null);
+                        updateStageField(stage.id, 'panel_model_label', '');
+                      } else {
+                        updateStageField(stage.id, 'turbine_model_id', null);
+                        updateStageField(stage.id, 'turbine_model_label', '');
+                      }
+                    }}
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {(isSolar ? solarfarmFields : windfarmFields).map((f) => (
                     <div key={`${stage.id}-${f.key}`} className="space-y-1.5">
@@ -172,6 +201,128 @@ const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages }) =>
       <div className="rounded-lg border bg-muted/40 p-4 text-center text-sm text-muted-foreground">
         You can proceed to Data Integration after adding at least one asset.
       </div>
+    </div>
+  );
+};
+
+// Farm Model Selector component
+const FarmModelSelector: React.FC<{ stage: Stage; onSelect: (id: number | null, label: string) => void; onClear: () => void; }> = ({ stage, onSelect, onClear }) => {
+  const isSolar = stage.type === 'solarfarm';
+  const [query, setQuery] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [results, setResults] = React.useState<{ id: number; label: string; manufacturer?: string; model_name?: string }[]>([]);
+  const [showAdd, setShowAdd] = React.useState(false);
+  const [manufacturer, setManufacturer] = React.useState('');
+  const [modelName, setModelName] = React.useState('');
+
+  const selectedLabel: string = isSolar ? (stage.data?.panel_model_label || '') : (stage.data?.turbine_model_label || '');
+
+  React.useEffect(() => {
+    let active = true;
+    const fetchModels = async () => {
+      if (query.trim().length < 2) { setResults([]); return; }
+      setLoading(true);
+      try {
+        const url = isSolar ? ENDPOINTS.farms.solarModels : ENDPOINTS.farms.windModels;
+        const resp = await api.get(url, { params: { q: query } });
+        if (!active) return;
+        setResults(resp.data || []);
+      } catch (e) {
+        if (!active) return;
+        setResults([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+    fetchModels();
+    return () => { active = false; };
+  }, [query, isSolar]);
+
+  const handleSelect = (item: { id: number; label: string }) => {
+    onSelect(item.id, item.label);
+    setQuery('');
+  };
+
+  const useCustomModel = () => {
+    const label = `${manufacturer} - ${modelName}`.trim().replace(/^\s*-\s*$/, '');
+    if (!label || label === '-') return;
+    onSelect(null, label);
+    setShowAdd(false);
+    setManufacturer('');
+    setModelName('');
+  };
+
+  const hasSelection = Boolean(selectedLabel);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs text-muted-foreground">
+          {isSolar ? 'Solar Farm model' : 'Wind Farm model'}
+        </Label>
+        {hasSelection && (
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={onClear}>
+            <X className="w-3.5 h-3.5 mr-1" /> Clear
+          </Button>
+        )}
+      </div>
+
+      {hasSelection && (
+        <div className="inline-flex items-center gap-2 rounded-md border px-3 py-1 text-sm">
+          <span className="truncate max-w-[280px]">{selectedLabel}</span>
+        </div>
+      )}
+
+      <div className="relative">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder={isSolar ? 'Search panel models (e.g., Jinko 410W)' : 'Search turbine models (e.g., Vestas V90)'}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-8"
+            />
+            {loading && <Loader2 className="w-4 h-4 animate-spin absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />}
+          </div>
+          <Button type="button" variant="outline" className="h-10" onClick={() => setShowAdd((s) => !s)}>
+            {showAdd ? 'Cancel' : 'Add model'}
+          </Button>
+        </div>
+
+        {query.trim().length >= 2 && results.length > 0 && (
+          <div className="absolute z-10 mt-2 w-full rounded-md border bg-popover p-1 shadow-sm">
+            {results.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleSelect(item)}
+                className="w-full text-left px-3 py-2 text-sm hover:bg-accent rounded"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {showAdd && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Manufacturer</Label>
+            <Input value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} placeholder="e.g., Vestas / Jinko" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Model Name</Label>
+            <Input value={modelName} onChange={(e) => setModelName(e.target.value)} placeholder="e.g., V90 / Tiger Neo" />
+          </div>
+          <div className="flex items-end">
+            <Button type="button" className="w-full" onClick={useCustomModel} disabled={!manufacturer || !modelName}>
+              Use this model
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
