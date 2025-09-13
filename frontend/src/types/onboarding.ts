@@ -10,6 +10,12 @@ export interface Stage {
   saved?: boolean;
 }
 
+export interface ModelSuggestion {
+  type: 'wind' | 'solar';
+  manufacturer: string;
+  model_name: string;
+}
+
 export interface OnboardingData {
   email: string;
   password: string;
@@ -26,4 +32,6 @@ export interface OnboardingData {
   dataConnection: string;
   dataType?: DataImportTable;
   dataFiles: File[];
+  // Suggestions added during asset setup to be persisted after registration (if needed)
+  pendingModelSuggestions: ModelSuggestion[];
 }

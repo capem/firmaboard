@@ -147,6 +147,8 @@ animate={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                       <StageSetupStep
                         stages={formData.stages}
                         setStages={(stages) => setFormData({ ...formData, stages })}
+                        localSuggestions={formData.pendingModelSuggestions}
+                        onSuggestionAdded={(s) => setFormData({ ...formData, pendingModelSuggestions: [...(formData.pendingModelSuggestions || []), s] })}
                       />
                     )}
                     {currentStep === 4 && (

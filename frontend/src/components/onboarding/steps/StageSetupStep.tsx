@@ -14,6 +14,8 @@ import { api, ENDPOINTS } from '@/config/api';
 interface StageSetupStepProps {
   stages: Stage[];
   setStages: (stages: Stage[]) => void;
+  localSuggestions?: { type: 'wind' | 'solar'; manufacturer: string; model_name: string }[];
+  onSuggestionAdded?: (s: { type: 'wind' | 'solar'; manufacturer: string; model_name: string }) => void;
 }
 
 const windfarmFields: { key: string; label: string; type: 'text' | 'number' }[] = [
@@ -37,7 +39,7 @@ const solarfarmFields: { key: string; label: string; type: 'text' | 'number' | '
   // boolean field handled with Checkbox
 ];
 
-const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages }) => {
+const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages, localSuggestions = [], onSuggestionAdded }) => {
   const addStage = () => {
     const newStage: Stage = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -136,6 +138,8 @@ const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages }) =>
                   <Label className="text-sm font-medium">FARM MODEL</Label>
                   <FarmModelSelector
                     stage={stage}
+                    extraLocal={(localSuggestions || []).filter((s) => s.type === (isSolar ? 'solar' : 'wind')).map((s) => ({ label: `${s.manufacturer} - ${s.model_name}` }))}
+                    onAddedSuggestion={onSuggestionAdded}
                     onSelect={(id: number | null, label: string) => {
                       if (stage.type === 'solarfarm') {
                         updateStageField(stage.id, 'panel_model_id', id);
@@ -206,50 +210,84 @@ const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages }) =>
 };
 
 // Farm Model Selector component
-const FarmModelSelector: React.FC<{ stage: Stage; onSelect: (id: number | null, label: string) => void; onClear: () => void; }> = ({ stage, onSelect, onClear }) => {
+const FarmModelSelector: React.FC<{ stage: Stage; onSelect: (id: number | null, label: string) => void; onClear: () => void; extraLocal?: { label: string }[]; onAddedSuggestion?: (s: { type: 'wind' | 'solar'; manufacturer: string; model_name: string }) => void; }> = ({ stage, onSelect, onClear, extraLocal = [], onAddedSuggestion }) => {
   const isSolar = stage.type === 'solarfarm';
   const [query, setQuery] = React.useState('');
   const [loading, setLoading] = React.useState(false);
-  const [results, setResults] = React.useState<{ id: number; label: string; manufacturer?: string; model_name?: string }[]>([]);
+  const [results, setResults] = React.useState<{ id: number | string; label: string; manufacturer?: string; model_name?: string }[]>([]);
   const [showAdd, setShowAdd] = React.useState(false);
   const [manufacturer, setManufacturer] = React.useState('');
   const [modelName, setModelName] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
 
   const selectedLabel: string = isSolar ? (stage.data?.panel_model_label || '') : (stage.data?.turbine_model_label || '');
 
   React.useEffect(() => {
     let active = true;
     const fetchModels = async () => {
-      if (query.trim().length < 2) { setResults([]); return; }
+      const q = query.trim();
+      if (q.length < 2) { setResults([]); return; }
       setLoading(true);
       try {
         const url = isSolar ? ENDPOINTS.farms.solarModels : ENDPOINTS.farms.windModels;
-        const resp = await api.get(url, { params: { q: query } });
+        const resp = await api.get(url, { params: { q } });
         if (!active) return;
-        setResults(resp.data || []);
+        const serverItems = (resp.data || []) as { id: number; label: string }[];
+        // Merge local extras that match the query
+        const merged = [...serverItems];
+        if (extraLocal && extraLocal.length) {
+          const qLower = q.toLowerCase();
+          const extraMatches = extraLocal
+            .filter((x) => x.label.toLowerCase().includes(qLower))
+            .filter((x) => !merged.some((m) => m.label.toLowerCase() === x.label.toLowerCase()))
+            .map((x) => ({ id: `local:${x.label}`, label: x.label }));
+          merged.push(...extraMatches);
+        }
+        setResults(merged);
       } catch (e) {
         if (!active) return;
-        setResults([]);
+        // Even if server fails, still show local extras
+        const qLower = q.toLowerCase();
+        const extraMatches = (extraLocal || [])
+          .filter((x) => x.label.toLowerCase().includes(qLower))
+          .map((x) => ({ id: `local:${x.label}`, label: x.label }));
+        setResults(extraMatches);
       } finally {
         if (active) setLoading(false);
       }
     };
     fetchModels();
     return () => { active = false; };
-  }, [query, isSolar]);
+  }, [query, isSolar, extraLocal]);
 
-  const handleSelect = (item: { id: number; label: string }) => {
-    onSelect(item.id, item.label);
+  const handleSelect = (item: { id: number | string; label: string }) => {
+    const idToSend = typeof item.id === 'number' ? item.id : null;
+    onSelect(idToSend, item.label);
     setQuery('');
   };
 
-  const useCustomModel = () => {
-    const label = `${manufacturer} - ${modelName}`.trim().replace(/^\s*-\s*$/, '');
-    if (!label || label === '-') return;
-    onSelect(null, label);
-    setShowAdd(false);
-    setManufacturer('');
-    setModelName('');
+  const useCustomModel = async () => {
+    const m = manufacturer.trim();
+    const n = modelName.trim();
+    const label = `${m} - ${n}`.trim().replace(/^\s*-\s*$/, '');
+    if (!m || !n || !label || label === '-') return;
+    setSaving(true);
+    try {
+      const url = isSolar ? ENDPOINTS.farms.solarModels : ENDPOINTS.farms.windModels;
+      const resp = await api.post(url, { manufacturer: m, model_name: n });
+      const item = resp.data as { id: number; label: string };
+      onSelect(item.id, item.label);
+    } catch (e) {
+      // Fallback: do not block the user; still use a custom, non-persisted label
+      onSelect(null, label);
+    } finally {
+      // Always record locally so other assets can see it immediately
+      onAddedSuggestion?.({ type: isSolar ? 'solar' : 'wind', manufacturer: m, model_name: n });
+      setSaving(false);
+      setShowAdd(false);
+      setManufacturer('');
+      setModelName('');
+    }
   };
 
   const hasSelection = Boolean(selectedLabel);
@@ -317,8 +355,8 @@ const FarmModelSelector: React.FC<{ stage: Stage; onSelect: (id: number | null, 
             <Input value={modelName} onChange={(e) => setModelName(e.target.value)} placeholder="e.g., V90 / Tiger Neo" />
           </div>
           <div className="flex items-end">
-            <Button type="button" className="w-full" onClick={useCustomModel} disabled={!manufacturer || !modelName}>
-              Use this model
+            <Button type="button" className="w-full" onClick={useCustomModel} disabled={!manufacturer || !modelName || saving}>
+              {saving ? 'Saving...' : 'Use this model'}
             </Button>
           </div>
         </div>
