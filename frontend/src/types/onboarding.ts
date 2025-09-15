@@ -34,4 +34,6 @@ export interface OnboardingData {
   dataFiles: File[];
   // Suggestions added during asset setup to be persisted after registration (if needed)
   pendingModelSuggestions: ModelSuggestion[];
+  // Column mapping for file-upload flow
+  columnMapping?: Record<string, string>;
 }

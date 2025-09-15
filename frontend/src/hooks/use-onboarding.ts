@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { api, ENDPOINTS } from '@/config/api';
-import { OnboardingData, DataImportTable } from '@/types/onboarding';
+import { OnboardingData, DataImportTable, ModelSuggestion } from '@/types/onboarding';
 import { validateEmail, validatePassword } from '@/utils/auth';
 import { storeTokens } from '@/utils/auth';
 import { AuthTokens } from '@/types/auth';
@@ -119,6 +119,8 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
     dataConnection: '',
     dataType: undefined,
     dataFiles: [],
+    pendingModelSuggestions: [],
+    columnMapping: {},
   });
 
   const validateStep = (step: number): boolean => {
@@ -175,8 +177,8 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
             description: "We need this to set up your integrations",
             variant: "destructive",
           });
-          return false;
         }
+        if (!formData.dataConnection) return false;
         if (formData.dataConnection === 'file-upload') {
           if (!formData.dataType) {
             toast({
@@ -193,6 +195,31 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
               variant: "destructive",
             });
             return false;
+          }
+        }
+        return true;
+      case 5:
+        // Column Mapping step: enforce mapping for selected data type when file-upload
+        if (formData.dataConnection === 'file-upload') {
+          const mapping = formData.columnMapping || {};
+          let required: string[] = [];
+          if (formData.dataType === 'timeseries_alarm') {
+            required = ['turbineId','alarmId','timeOn','timeOff','newTimeOn','alarmCategory'];
+          } else if (formData.dataType === 'timeseries_windfarmtimeseries') {
+            required = ['time','node_id'];
+          } else if (formData.dataType === 'timeseries_solarfarmtimeseries') {
+            required = ['time','node_id','solar_irradiance','power_output','module_temperature'];
+          }
+          if (required.length) {
+            const missing = required.filter((k) => !mapping[k]);
+            if (missing.length) {
+              toast({
+                title: "Complete column mapping",
+                description: "Please map all required fields before continuing.",
+                variant: "destructive",
+              });
+              return false;
+            }
           }
         }
         return true;
@@ -249,6 +276,21 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
     toast({ title: 'Data uploaded', description: `${success} file(s) inserted into ${formData.dataType}.` });
   };
 
+  const persistPendingSuggestions = async (suggestions: ModelSuggestion[]) => {
+    if (!suggestions || !suggestions.length) return;
+    for (const s of suggestions) {
+      try {
+        if (s.type === 'solar') {
+          await api.post(ENDPOINTS.farms.solarModels, { manufacturer: s.manufacturer, model_name: s.model_name });
+        } else {
+          await api.post(ENDPOINTS.farms.windModels, { manufacturer: s.manufacturer, model_name: s.model_name });
+        }
+      } catch (e) {
+        // ignore individual failures
+      }
+    }
+  };
+
   const handleSubmit = async () => {
     const validationError = validateRegistrationData(formData, { isGoogleOAuth });
     if (validationError) {
@@ -291,6 +333,11 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
           console.error('Data upload failed:', e);
           toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
         }
+        // Persist any farm model suggestions captured during onboarding
+        try { await persistPendingSuggestions(formData.pendingModelSuggestions); } catch {}
+        // Clear pending suggestions after attempt
+        setFormData((prev) => ({ ...prev, pendingModelSuggestions: [] }));
+
         toast({ title: 'Profile completed', description: 'Redirecting to dashboard...' });
         setTimeout(() => navigate(tenantPath('/dashboard')), 800);
         return;
@@ -318,6 +365,10 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
           toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
         }
         
+        // Persist any farm model suggestions captured during onboarding now that we have a company
+        try { await persistPendingSuggestions(formData.pendingModelSuggestions); } catch {}
+        setFormData((prev) => ({ ...prev, pendingModelSuggestions: [] }));
+
         toast({
           title: "Registration successful",
           description: "Welcome to Firmaboard! Redirecting to dashboard...",

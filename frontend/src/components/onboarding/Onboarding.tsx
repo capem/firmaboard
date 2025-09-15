@@ -6,7 +6,8 @@ import CompanyDefinitionStep from './steps/CompanyDefinitionStep';
 import MainOutputStep from './steps/MainOutputStep';
 import DataConnectionStep from './steps/DataConnectionStep';
 import StageSetupStep from './steps/StageSetupStep';
-import { ArrowRight, ArrowLeft, Shield, Zap, Building2, ListPlus } from 'lucide-react';
+import ColumnMappingStep from './steps/ColumnMappingStep';
+import { ArrowRight, ArrowLeft, Shield, Zap, Building2, ListPlus, ListChecks } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOnboarding } from '@/hooks/use-onboarding';
 import { useSearchParams } from 'react-router-dom';
@@ -31,6 +32,11 @@ const steps = [
     icon: Shield,
     title: "Data Integration",
     description: "Secure connection setup",
+  },
+  {
+    icon: ListChecks,
+    title: "Column Mapping",
+    description: "Map file columns to database fields",
   }
 ] as const;
 
@@ -161,6 +167,14 @@ animate={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                         setDataType={(type) => setFormData({ ...formData, dataType: type })}
                         files={formData.dataFiles}
                         setFiles={(fs) => setFormData({ ...formData, dataFiles: fs })}
+                      />
+                    )}
+                    {currentStep === 5 && (
+                      <ColumnMappingStep
+                        dataType={formData.dataType}
+                        files={formData.dataFiles}
+                        mapping={formData.columnMapping || {}}
+                        setMapping={(m) => setFormData({ ...formData, columnMapping: m })}
                       />
                     )}
                   </motion.div>
