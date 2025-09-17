@@ -12,7 +12,7 @@ interface ColumnMappingStepProps {
   setMapping: (m: Record<string, string>) => void;
 }
 
-const defaultAvaiClableColumns = [
+const defaultAvailableColumns = [
   'TimeOn',
   'TimeOff',
   'StationId',

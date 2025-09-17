@@ -10,6 +10,7 @@ import { Stage, StageType } from '@/types/onboarding';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2, CheckCircle2, Search, X, Loader2 } from 'lucide-react';
 import { api, ENDPOINTS } from '@/config/api';
+import { useToast } from '@/hooks/use-toast';
 
 interface StageSetupStepProps {
   stages: Stage[];
@@ -212,6 +213,7 @@ const StageSetupStep: React.FC<StageSetupStepProps> = ({ stages, setStages, loca
 // Farm Model Selector component
 const FarmModelSelector: React.FC<{ stage: Stage; onSelect: (id: number | null, label: string) => void; onClear: () => void; extraLocal?: { label: string }[]; onAddedSuggestion?: (s: { type: 'wind' | 'solar'; manufacturer: string; model_name: string }) => void; }> = ({ stage, onSelect, onClear, extraLocal = [], onAddedSuggestion }) => {
   const isSolar = stage.type === 'solarfarm';
+  const { toast } = useToast();
   const [query, setQuery] = React.useState('');
   const [loading, setLoading] = React.useState(false);
   const [results, setResults] = React.useState<{ id: number | string; label: string; manufacturer?: string; model_name?: string }[]>([]);
@@ -277,16 +279,16 @@ const FarmModelSelector: React.FC<{ stage: Stage; onSelect: (id: number | null, 
       const resp = await api.post(url, { manufacturer: m, model_name: n });
       const item = resp.data as { id: number; label: string };
       onSelect(item.id, item.label);
-    } catch (e) {
-      // Fallback: do not block the user; still use a custom, non-persisted label
-      onSelect(null, label);
-    } finally {
-      // Always record locally so other assets can see it immediately
+      // Record locally so other assets immediately see this model
       onAddedSuggestion?.({ type: isSolar ? 'solar' : 'wind', manufacturer: m, model_name: n });
-      setSaving(false);
       setShowAdd(false);
       setManufacturer('');
       setModelName('');
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || 'Failed to save model to the database. Please try again.';
+      toast({ title: 'Save model failed', description: msg, variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   };
 

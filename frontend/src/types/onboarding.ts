@@ -32,7 +32,10 @@ export interface OnboardingData {
   dataConnection: string;
   dataType?: DataImportTable;
   dataFiles: File[];
-  // Suggestions added during asset setup to be persisted after registration (if needed)
+  // Optional: local model suggestions and column mappings used in onboarding
+  pendingModelSuggestions?: { type: 'wind' | 'solar'; manufacturer: string; model_name: string }[];
+  columnMapping?: Record<string, string>;
+}
   pendingModelSuggestions: ModelSuggestion[];
   // Column mapping for file-upload flow
   columnMapping?: Record<string, string>;

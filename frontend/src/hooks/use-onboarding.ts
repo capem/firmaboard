@@ -325,6 +325,8 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
         };
         const resp = await api.post(ENDPOINTS.auth.setupCompanyProfile, payload);
         setUser(resp.data.user);
+        // Ensure axios interceptor sees the token header afterward
+        try { sessionStorage.setItem('auth_token', (resp as any).data?.tokens?.access || sessionStorage.getItem('auth_token') || ''); } catch {}
         setOnboardingRequired(false);
         // Optionally backend can return onboarding_required: false
         try {
@@ -356,6 +358,8 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
         
         // Set the user in auth context to complete the login process
         setUser(response.data.user);
+        // Make sure axios interceptors read the token from the right key immediately
+        try { sessionStorage.setItem('auth_token', tokens.access); } catch {}
         setOnboardingRequired(false);
 
         try {

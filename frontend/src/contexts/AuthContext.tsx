@@ -14,7 +14,8 @@ import {
   clearTokens,
   storeTokens,
   getStoredToken,
-  getStoredRefreshToken
+  getStoredRefreshToken,
+  TOKEN_STORAGE_KEY
 } from '@/utils/auth';
 import { useTenant } from '@/contexts/TenantContext';
 
@@ -70,6 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         return false;
       }
+
+      // Ensure the token is present in a consistent key expected by axios interceptors
+      sessionStorage.setItem(TOKEN_STORAGE_KEY.AUTH, token);
 
       const { data } = await api.get<{ isAuthenticated: boolean; user?: User; onboarding_required?: boolean }>(ENDPOINTS.auth.session);
       if (data.isAuthenticated && data.user) {
