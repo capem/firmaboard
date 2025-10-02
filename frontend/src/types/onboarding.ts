@@ -33,10 +33,7 @@ export interface OnboardingData {
   dataType?: DataImportTable;
   dataFiles: File[];
   // Optional: local model suggestions and column mappings used in onboarding
-  pendingModelSuggestions?: { type: 'wind' | 'solar'; manufacturer: string; model_name: string }[];
-  columnMapping?: Record<string, string>;
-}
-  pendingModelSuggestions: ModelSuggestion[];
+  pendingModelSuggestions?: ModelSuggestion[];
   // Column mapping for file-upload flow
   columnMapping?: Record<string, string>;
 }

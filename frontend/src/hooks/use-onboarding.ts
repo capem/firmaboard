@@ -46,6 +46,7 @@ interface RegisterRequest {
     definitions: string[];
     main_output: string;
     data_connection: string;
+    stages: OnboardingData['stages'];
   };
 }
 
@@ -228,35 +229,83 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
     }
   };
 
+  const handleBack = () => setCurrentStep((prev) => prev - 1);
+
+  const handleRegisterAndProceed = async () => {
+    if (!validateStep(1)) return;
+
+    try {
+      const formattedPhone = formData.phoneNumber.trim().replace(/[^+\d]/g, '');
+      const registrationData = {
+        email: formData.email.trim(),
+        password: formData.password,
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        phone_number: formattedPhone,
+        address: formData.address.trim(),
+        role: formData.role.trim(),
+        company: {
+          name: formData.companyName.trim(),
+          registration_number: `FB${Date.now()}`,
+          address: formData.address.trim(),
+          contact_email: formData.email.trim(),
+          contact_phone: formattedPhone,
+          definitions: formData.companyDefinitions,
+          main_output: '', 
+          data_connection: '', 
+          stages: [], 
+        },
+      };
+
+      const response = await api.post<RegisterResponse>(ENDPOINTS.auth.register, registrationData);
+      
+      if (response.data?.tokens) {
+        const tokens: AuthTokens = {
+          access: response.data.tokens.access,
+          refresh: response.data.tokens.refresh
+        };
+        storeTokens(tokens, true);
+        setUser(response.data.user);
+        try { sessionStorage.setItem('auth_token', tokens.access); } catch {}
+        
+        toast({
+          title: "Registration Successful",
+          description: "Your profile and company have been created.",
+        });
+        setCurrentStep((prev) => prev + 1);
+      } else {
+        throw new Error('No authentication tokens received');
+      }
+    } catch (error: any) {
+      console.error('Registration error:', { error, submittedData: formData });
+      const errorMessage = error.response?.data?.error || "An unexpected error occurred";
+      toast({
+        title: "Registration failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleNext = () => {
-    if (validateStep(currentStep)) {
+    if (!validateStep(currentStep)) {
+      return;
+    }
+    if (currentStep === 1 && !isGoogleOAuth) {
+      handleRegisterAndProceed();
+    } else {
       setCurrentStep((prev) => prev + 1);
     }
   };
 
-  const handleBack = () => setCurrentStep((prev) => prev - 1);
-
-  const formatRegistrationData = (): RegisterRequest => {
-    // Format the phone number once to ensure consistency
-    const formattedPhone = formData.phoneNumber.trim().replace(/[^+\d]/g, '');
-    
+  const formatFinalSubmitData = () => {
     return {
-      email: formData.email.trim(),
-      password: formData.password,
-      first_name: formData.firstName.trim(),
-      last_name: formData.lastName.trim(),
-      phone_number: formattedPhone,
-      address: formData.address.trim(),
-      role: formData.role.trim(),
       company: {
         name: formData.companyName.trim(),
-        registration_number: `FB${Date.now()}`,
-        address: formData.address.trim(),
-        contact_email: formData.email.trim(),
-        contact_phone: formattedPhone,
         definitions: formData.companyDefinitions,
         main_output: formData.mainOutput,
         data_connection: formData.dataConnection,
+        stages: formData.stages,
       },
     };
   };
@@ -291,122 +340,38 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
     }
   };
 
-  const handleSubmit = async () => {
-    const validationError = validateRegistrationData(formData, { isGoogleOAuth });
-    if (validationError) {
+  const handleFinalSubmit = async () => {
+    // Final validation can be added here if needed
+    try {
+      // This endpoint needs to be able to update the company with the final details
+      // Assuming a PATCH request to the company endpoint
+      await api.patch(`${ENDPOINTS.tenants.companies}${user?.company_id}/`, formatFinalSubmitData().company);
+
+      if (formData.dataConnection === 'file-upload') {
+        await uploadFilesToSelectedTable();
+      }
+      
+      await persistPendingSuggestions(formData.pendingModelSuggestions);
+      setFormData((prev) => ({ ...prev, pendingModelSuggestions: [] }));
+      
+      setOnboardingRequired(false);
+
       toast({
-        title: "Validation Error",
-        description: validationError,
+        title: "Onboarding Complete",
+        description: "Welcome to Firmaboard! Redirecting to your dashboard...",
+      });
+
+      setTimeout(() => {
+        navigate(tenantPath('/dashboard'));
+      }, 1000);
+
+    } catch (error: any) {
+      console.error('Final submission error:', { error, submittedData: formData });
+      toast({
+        title: "Submission Failed",
+        description: "Could not save the final onboarding details.",
         variant: "destructive",
       });
-      return;
-    }
-
-    try {
-      if (isGoogleOAuth) {
-        // Build minimal payload for company setup using the authenticated user's email if not provided
-        const formattedPhone = formData.phoneNumber.trim().replace(/[^+\d]/g, '');
-        const payload = {
-          first_name: formData.firstName.trim(),
-          last_name: formData.lastName.trim(),
-          phone_number: formattedPhone,
-          address: formData.address.trim(),
-          role: formData.role.trim(),
-          company: {
-            name: formData.companyName.trim(),
-            registration_number: `FB${Date.now()}`,
-            address: formData.address.trim(),
-            contact_email: (formData.email || user?.email || '').trim(),
-            contact_phone: formattedPhone,
-            definitions: formData.companyDefinitions,
-            main_output: formData.mainOutput,
-            data_connection: formData.dataConnection,
-          },
-        };
-        const resp = await api.post(ENDPOINTS.auth.setupCompanyProfile, payload);
-        setUser(resp.data.user);
-        // Ensure axios interceptor sees the token header afterward
-        try { sessionStorage.setItem('auth_token', (resp as any).data?.tokens?.access || sessionStorage.getItem('auth_token') || ''); } catch {}
-        setOnboardingRequired(false);
-        // Optionally backend can return onboarding_required: false
-        try {
-          await uploadFilesToSelectedTable();
-        } catch (e: any) {
-          console.error('Data upload failed:', e);
-          toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
-        }
-        // Persist any farm model suggestions captured during onboarding
-        try { await persistPendingSuggestions(formData.pendingModelSuggestions); } catch {}
-        // Clear pending suggestions after attempt
-        setFormData((prev) => ({ ...prev, pendingModelSuggestions: [] }));
-
-        toast({ title: 'Profile completed', description: 'Redirecting to dashboard...' });
-        setTimeout(() => navigate(tenantPath('/dashboard')), 800);
-        return;
-      }
-
-      const requestData = formatRegistrationData();
-      const response = await api.post<RegisterResponse>(ENDPOINTS.auth.register, requestData);
-      
-      if (response.data?.tokens) {
-        // Store the tokens with rememberMe set to true for registration
-        const tokens: AuthTokens = {
-          access: response.data.tokens.access,
-          refresh: response.data.tokens.refresh
-        };
-        storeTokens(tokens, true);
-        
-        // Set the user in auth context to complete the login process
-        setUser(response.data.user);
-        // Make sure axios interceptors read the token from the right key immediately
-        try { sessionStorage.setItem('auth_token', tokens.access); } catch {}
-        setOnboardingRequired(false);
-
-        try {
-          await uploadFilesToSelectedTable();
-        } catch (e: any) {
-          console.error('Data upload failed:', e);
-          toast({ title: 'Data upload failed', description: e?.response?.data?.detail || 'An error occurred during data upload.', variant: 'destructive' });
-        }
-        
-        // Persist any farm model suggestions captured during onboarding now that we have a company
-        try { await persistPendingSuggestions(formData.pendingModelSuggestions); } catch {}
-        setFormData((prev) => ({ ...prev, pendingModelSuggestions: [] }));
-
-        toast({
-          title: "Registration successful",
-          description: "Welcome to Firmaboard! Redirecting to dashboard...",
-        });
-        
-        // Short delay to allow the toast to be seen
-        setTimeout(() => {
-          navigate(tenantPath('/dashboard'));
-        }, 1000);
-      } else {
-        throw new Error('No authentication tokens received');
-      }
-    } catch (error: any) {
-      console.error('Registration error:', { error, submittedData: formData });
-      
-      // Handle specific error cases
-      const errorMessage = error.response?.data?.error || "An unexpected error occurred";
-      if (errorMessage.includes("already exists")) {
-        toast({
-          title: "Account Already Exists",
-          description: "This email is already registered. Please try logging in instead.",
-          variant: "destructive",
-        });
-        // Redirect to login after a short delay
-        setTimeout(() => {
-          navigate(tenantPath('/login'));
-        }, 2000);
-      } else {
-        toast({
-          title: "Registration failed",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      }
     }
   };
 
@@ -416,6 +381,6 @@ export const useOnboarding = ({ initialStep = 1, isGoogleOAuth = false }: UseOnb
     setFormData,
     handleNext,
     handleBack,
-    handleSubmit,
+    handleSubmit: handleFinalSubmit, // Keep handleSubmit for simplicity in the component
   };
-}; 
+};

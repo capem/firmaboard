@@ -6,7 +6,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth import get_user_model, authenticate
 from django.db import transaction
 from rest_framework_simplejwt.tokens import RefreshToken
-from farms.models import Company
+from farms.models import Company, WindFarm, SolarFarm, WindTurbineModel, SolarPanelModel
 from django.conf import settings
 from rest_framework.reverse import reverse
 from rest_framework.schemas import AutoSchema
@@ -81,7 +81,8 @@ def register_user(request):
             "address": "123 Main St",
             "contact_email": "user@example.com",
             "contact_phone": "+1234567890",
-            "definitions": ["solar", "wind"]
+            "definitions": ["solar", "wind"],
+            "stages": []
         }
     }
     ```
@@ -123,6 +124,21 @@ def register_user(request):
                 data_connection=company_data.get('data_connection')
             )
             logger.info(f"Created company: {company.name} (ID: {company.id})")
+            
+            # Process stages
+            stages_data = company_data.get('stages', [])
+            for stage_data in stages_data:
+                stage_type = stage_data.pop('type', None)
+                if stage_type == 'wind':
+                    turbine_model_id = stage_data.pop('turbine_model', None)
+                    if turbine_model_id:
+                        stage_data['turbine_model'] = WindTurbineModel.objects.get(pk=turbine_model_id)
+                    WindFarm.objects.create(company=company, **stage_data)
+                elif stage_type == 'solar':
+                    panel_model_id = stage_data.pop('panel_model', None)
+                    if panel_model_id:
+                        stage_data['panel_model'] = SolarPanelModel.objects.get(pk=panel_model_id)
+                    SolarFarm.objects.create(company=company, **stage_data)
 
             # Create user using .get() for safety
             user_data = {
@@ -448,7 +464,8 @@ def setup_company_profile(request):
             "contact_phone": "+1234567890",
             "definitions": ["solar", "wind"],
             "main_output": "solar",
-            "data_connection": "manual"
+            "data_connection": "manual",
+            "stages": []
         }
     }
     """
@@ -477,6 +494,21 @@ def setup_company_profile(request):
                 main_output=company_data.get('main_output'),
                 data_connection=company_data.get('data_connection')
             )
+
+            # Process stages
+            stages_data = company_data.get('stages', [])
+            for stage_data in stages_data:
+                stage_type = stage_data.pop('type', None)
+                if stage_type == 'wind':
+                    turbine_model_id = stage_data.pop('turbine_model', None)
+                    if turbine_model_id:
+                        stage_data['turbine_model'] = WindTurbineModel.objects.get(pk=turbine_model_id)
+                    WindFarm.objects.create(company=company, **stage_data)
+                elif stage_type == 'solar':
+                    panel_model_id = stage_data.pop('panel_model', None)
+                    if panel_model_id:
+                        stage_data['panel_model'] = SolarPanelModel.objects.get(pk=panel_model_id)
+                    SolarFarm.objects.create(company=company, **stage_data)
 
             # Update user profile fields and link company
             user.first_name = request.data.get('first_name', user.first_name)
